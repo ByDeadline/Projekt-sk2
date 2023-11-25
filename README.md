@@ -1,12 +1,12 @@
 
-## Sieciowy Type-Rircer 
-# Projekt-sk2
+# Sieciowy Type-Rircer 
+###Projekt-sk2
 
 strona serwerowa napisana w C++ uzywajac BSD Api
 client napisany w pythonie uzywajac PyGame
 
-# Plan Gry:
-Gracz: 
+## Plan Gry:
+### Gracz: 
 Gracz łączy się z serwerem, i wybiera nick.
 
 Następnie trafia do lobby gdzie widzi listę pokoi oczekujących na rozpoczęcie gry z którymi może się połączyć.
@@ -21,7 +21,7 @@ Gra trwa tak długo aż wszyscy gracze nie skończą pisać lub do końca okreś
 
 Wygrywa gracz który skończy pisać jako pierwszy. Po zakończeniu wyświetlana jest tabela wyników i guzik powrotu do lobby. 
 
-Admin: 
+### Admin: 
 Admin ma możliwość:
 - wyświetlania, wszystkich graczy i pokoi w których są
 - wyświetlania wszystkich pokoi
