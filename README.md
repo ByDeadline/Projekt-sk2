@@ -1,6 +1,5 @@
 # Projekt-sk2
-
-​​​## Sieciowy Type-Rircer 
+## Sieciowy Type-Rircer 
 
 strona serwerowa napisana w C++ uzywajac BSD Api
 client napisany w pythonie uzywajac PyGame
