@@ -1,4 +1,4 @@
-#include <header/Rational.h>
+#include <Rational.h>
 
 Rational::Rational(int p, int q)
 {
