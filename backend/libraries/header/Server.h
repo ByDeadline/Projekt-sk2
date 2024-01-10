@@ -28,7 +28,7 @@ public:
 
     static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress, std::shared_ptr<User> user);
 
-    static bool addUserToConnection(int id, std::shared_ptr<User> user);
+    static bool AddUserToConnection(int id, std::shared_ptr<User> user);
 
     static std::shared_ptr<IRequestResult> ReciveRequest(std::shared_ptr<IRequestData> requestData);
 };

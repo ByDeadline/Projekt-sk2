@@ -25,12 +25,13 @@ std::shared_ptr<User> UserHandler::GetUser(std::string username)
     return nullptr;
 }
 
-std::string UserHandler::AddUser(std::string username)
+std::string UserHandler::AddUser(std::string username, int clientId)
 {
     auto user = std::make_shared<User>();
     user->username = username;
     user->id = "#" + std::to_string(UserHandler::idCounter++);
     UserHandler::users.push_back(user);
+    Server::AddUserToConnection(clientId, user);
 
     return user->id;
 }
@@ -51,7 +52,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
 
     if (UserHandler::GetUser(userData->username) == nullptr)
     {
-        std::string userId = UserHandler::AddUser(userData->username);
+        std::string userId = UserHandler::AddUser(userData->username, userData->clientId);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
         userActionResult->uniqueCode = userId;
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged in user " + userData->username + userId);

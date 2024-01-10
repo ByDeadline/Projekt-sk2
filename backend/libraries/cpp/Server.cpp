@@ -48,7 +48,7 @@ std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in client
     return serverConnection;
 }
 
-bool Server::addUserToConnection(int id, std::shared_ptr<User> user)
+bool Server::AddUserToConnection(int id, std::shared_ptr<User> user)
 {
     for (auto serverConnection : Server::serverConnections)
     {
