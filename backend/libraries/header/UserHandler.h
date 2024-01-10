@@ -18,5 +18,5 @@ private:
 public:
     static std::shared_ptr<User> GetUser(std::string username);
     static std::string AddUser(std::string username);
-    static UserActionResult HandleLogin(IRequestData requestData);
+    static std::shared_ptr<IRequestResult> HandleLogin(std::shared_ptr<IRequestData> requestData);
 };

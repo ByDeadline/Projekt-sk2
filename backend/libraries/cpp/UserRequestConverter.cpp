@@ -1,19 +1,20 @@
 #include <string>
 #include <list>
+#include <memory>
 
 #include "../header/UserRequestConverter.h"
 #include "../header/IRequestData.h"
 #include "../header/IRequestResult.h"
 #include "../header/UserData.h"
 
-IRequestData UserRequestConverter::Convert(std::list<std::string> data)
+std::shared_ptr<IRequestData> UserRequestConverter::Convert(std::list<std::string> data)
 {
-    UserData userData;
-    userData.SetRequestType(RequestType::UserLogin);
+    auto userData = std::make_shared<UserData>();
+    userData->SetRequestType(RequestType::UserLogin);
 
-    if (data.size() > 2)
+    if (data.size() != 2)
     {
-        userData.SetRequestType(RequestType::Unknown);
+        userData->SetRequestType(RequestType::Unknown);
         return userData;
     }
 
@@ -22,7 +23,7 @@ IRequestData UserRequestConverter::Convert(std::list<std::string> data)
         if (item == "login")
             continue;
         
-        userData.username = item;
+        userData->username = item;
     }
 
     return userData;

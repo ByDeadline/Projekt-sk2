@@ -1,8 +1,9 @@
 #pragma once
 
 #include <map>
+#include <string>
 
-#include <IRequestResult.h>
+#include "../header/IRequestResult.h"
 
 class UserActionResult : public IRequestResult
 {
@@ -10,16 +11,18 @@ public:
     enum ResultTypeEnum
     {
         Success,
-        UsernameAlreadyExists
+        UsernameAlreadyExists,
+        ClientAlreadyLoggedIn
     };
     ResultTypeEnum resultType;
+    std::string GetMessage() override { return this->resultTypeMessages[this->resultType]; }
 
     std::string uniqueCode;
-
 private:
     std::map<ResultTypeEnum, std::string> resultTypeMessages
     {
         { ResultTypeEnum::Success, "Successfuly added the user" },
-        { ResultTypeEnum::UsernameAlreadyExists, "A user with the same nickname already exists" }
+        { ResultTypeEnum::UsernameAlreadyExists, "A user with the same nickname already exists" },
+        { ResultTypeEnum::ClientAlreadyLoggedIn, "Client is already logged in" }
     };
 };

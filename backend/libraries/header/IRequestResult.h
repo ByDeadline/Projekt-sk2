@@ -9,10 +9,7 @@ class IRequestResult
 {
 public:
     enum ResultTypeEnum {};
-    std::string GetMessage();
+    virtual std::string GetMessage() { return ""; }
     ResultTypeEnum resultType;
     ResultType resultConclusion;
-    virtual ~IRequestResult();
-private:
-    std::map<ResultTypeEnum, std::string> resultTypeMessages;
 };

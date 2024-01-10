@@ -7,6 +7,7 @@
 #include "../header/IRequestResult.h"
 #include "../header/ResultType.h"
 #include "../header/Log.h"
+#include "../header/Server.h"
 
 int UserHandler::idCounter = 0;
 std::list<std::shared_ptr<User>> UserHandler::users;
@@ -34,22 +35,31 @@ std::string UserHandler::AddUser(std::string username)
     return user->id;
 }
 
-UserActionResult UserHandler::HandleLogin(IRequestData requestData)
+std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IRequestData> requestData)
 {
-    std::shared_ptr<UserData> userData(dynamic_cast<UserData*>(&requestData));
-    UserActionResult userActionResult;
-    userActionResult.resultConclusion = ResultType::AddUser;
+    auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
+    auto userActionResult = std::make_shared<UserActionResult>();
+    userActionResult->resultConclusion = ResultType::AddUser;
+
+    if (Server::GetUserById(userData->clientId) != nullptr)
+    {
+        userActionResult->resultType = UserActionResult::ResultTypeEnum::ClientAlreadyLoggedIn;
+        Log::Write(std::to_string(userData->clientId) + ": error: This client is already logged in");
+
+        return userActionResult;
+    }
 
     if (UserHandler::GetUser(userData->username) == nullptr)
     {
         std::string userId = UserHandler::AddUser(userData->username);
-        userActionResult.resultType = UserActionResult::ResultTypeEnum::Success;
-        Log::Write("Successfully added user " + userData->username + userId);
+        userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
+        userActionResult->uniqueCode = userId;
+        Log::Write(std::to_string(userData->clientId) + ": Successfully logged in user " + userData->username + userId);
         
         return userActionResult;
     }
 
-    Log::Write("Error: Username " + userData->username + " already exists");
-    userActionResult.resultType = UserActionResult::ResultTypeEnum::UsernameAlreadyExists;
+    Log::Write(std::to_string(userData->clientId) + ": error: Username " + userData->username + " already exists");
+    userActionResult->resultType = UserActionResult::ResultTypeEnum::UsernameAlreadyExists;
     return userActionResult;
 }

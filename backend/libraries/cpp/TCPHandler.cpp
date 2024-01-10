@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <thread>
 #include <poll.h>
+#include <memory>
 
 #include "../header/TCPHandler.h"
 #include "../header/GlobalSettings.h"
@@ -47,9 +48,8 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     inet_ntop(AF_INET, &(clientAddress.sin_addr), addressChar, GlobalSettings::MaxCharAddressLength);
     std::string ipAddress(addressChar);
 
-    Log::Write("New user connection from " + ipAddress);
-
-    auto clientConnection = Server::addServerConnection(clientAddress);
+    auto clientConnection = Server::AddServerConnection(clientAddress);
+    Log::Write("New user connection from " + ipAddress + ". Assgined id: " + std::to_string(clientConnection->clientId));
 
     pollfd clientPoll {};
     clientPoll.fd = fd;
@@ -66,14 +66,15 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
             {
                 std::string recivedText(data, len - 1);
 
-                Log::Write(ipAddress + " sent request to TCP handler. Contents: '" + recivedText + "'");
+                Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
 
-                IRequestData requestData = RequestConverter::Convert(recivedText);
-                IRequestResult requestResult = Server::ReciveRequest(requestData);
+                auto requestData = RequestConverter::Convert(recivedText);
+                requestData->clientId = clientConnection->clientId;
+                auto requestResult = Server::ReciveRequest(requestData);
                 std::string textToSend = RequestConverter::Convert(requestResult);
                 write(fd, textToSend.c_str(), textToSend.size());
 
-                Log::Write("TCP handler answered " + ipAddress + " with contents: '" + textToSend + "'");
+                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
             }
         }
         else

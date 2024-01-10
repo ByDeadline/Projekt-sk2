@@ -1,5 +1,6 @@
 #include <string>
 #include <list>
+#include <memory>
 
 #include "../header/RequestConverter.h"
 #include "../header/IRequestData.h"
@@ -20,10 +21,20 @@ std::list<std::string> RequestConverter::DivideData(std::string data)
         separatorPosition = data.find(",");
     }
 
+    separatorPosition = data.find(";");
+    if (separatorPosition != std::string::npos)
+    {
+        items.push_back(data.substr(0, separatorPosition));
+    }
+    else
+    {
+        items.push_back(data);
+    }
+
     return items;
 }
 
-IRequestData RequestConverter::Convert(std::string data)
+std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
 {
     std::list<std::string> items = RequestConverter::DivideData(data);
     
@@ -33,14 +44,14 @@ IRequestData RequestConverter::Convert(std::string data)
             return UserRequestConverter::Convert(items);
     }
 
-    IRequestData unknownData;
-    unknownData.SetRequestType(RequestType::Unknown);
+    auto unknownData = std::make_shared<IRequestData>();
+    unknownData->SetRequestType(RequestType::Unknown);
     return unknownData;
 }
 
-std::string RequestConverter::Convert(IRequestResult data)
+std::string RequestConverter::Convert(std::shared_ptr<IRequestResult> data)
 {
-    switch (data.resultConclusion)
+    switch (data->resultConclusion)
     {
         case RequestType::UserLogin:
             return UserActionResultConverter::ConvertUserLogin(data);

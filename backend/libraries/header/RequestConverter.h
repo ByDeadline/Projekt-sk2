@@ -2,6 +2,7 @@
 
 #include <string>
 #include <list>
+#include <memory>
 
 #include <IRequestData.h>
 #include <IRequestResult.h>
@@ -17,7 +18,7 @@ private:
     static std::list<std::string> DivideData(std::string data);
 
 public:
-    static IRequestData Convert(std::string data);
+    static std::shared_ptr<IRequestData> Convert(std::string data);
     
-    static std::string Convert(IRequestResult data);
+    static std::string Convert(std::shared_ptr<IRequestResult> data);
 };

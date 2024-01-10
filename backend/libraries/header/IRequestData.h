@@ -8,6 +8,8 @@ private:
     RequestType requestType;
 
 public:
+    int clientId;
+
     virtual ~IRequestData();
     RequestType GetRequestType();
     void SetRequestType(RequestType requestType);

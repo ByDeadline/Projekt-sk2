@@ -9,7 +9,7 @@
 class UserActionResultConverter
 {
 public:
-    static std::string ConvertUserLogin(IRequestResult data);
+    static std::string ConvertUserLogin(std::shared_ptr<IRequestResult> data);
     static std::string BuildUserLogin(std::shared_ptr<UserActionResult> data);
-    static std::string BuildUsernameAlreadyExists(std::shared_ptr<UserActionResult> userResult);
+    static std::string BuildError(std::shared_ptr<UserActionResult> userResult);
 };
