@@ -8,5 +8,7 @@ private:
     RequestType requestType;
 
 public:
+    virtual ~IRequestData();
     RequestType GetRequestType();
+    void SetRequestType(RequestType requestType);
 };

@@ -2,10 +2,13 @@
 #include <list>
 #include <memory>
 
-#include <ServerConnection.h>
-#include <Server.h>
+#include "../header/ServerConnection.h"
+#include "../header/Server.h"
+#include "../header/UserHandler.h"
+#include "../header/Log.h"
 
 int Server::idCounter = 0;
+std::list<std::shared_ptr<ServerConnection>> Server::serverConnections;
 
 std::list<std::shared_ptr<ServerConnection>> Server::getServerConnections()
 {
@@ -45,4 +48,19 @@ bool Server::addUserToConnection(int id, std::shared_ptr<User> user)
     }
     
     return false;
+}
+
+IRequestResult Server::ReciveRequest(IRequestData requestData)
+{
+    switch (requestData.GetRequestType())
+    {
+        case RequestType::UserLogin:
+            Log::Write("Server recognised the request for creating a user");
+            return UserHandler::HandleLogin(requestData);
+    }
+
+    Log::Write("Server did not recognise the request");
+    IRequestResult result;
+    result.resultConclusion = ResultType::Unknown1;
+    return result;
 }

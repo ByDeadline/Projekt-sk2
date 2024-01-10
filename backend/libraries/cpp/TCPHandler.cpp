@@ -7,9 +7,12 @@
 #include <thread>
 #include <poll.h>
 
-#include <TCPHandler.h>
-#include <GlobalSettings.h>
-#include <Server.h>
+#include "../header/TCPHandler.h"
+#include "../header/GlobalSettings.h"
+#include "../header/Server.h"
+#include "../header/RequestConverter.h"
+#include "../header/IRequestData.h"
+#include "../header/Log.h"
 
 TCPHandler::TCPHandler()
 {
@@ -18,6 +21,8 @@ TCPHandler::TCPHandler()
 
 void TCPHandler::ListenForClinets()
 {
+    Log::Write("TCP listen started.");
+
     sockaddr_in serverAddress {};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
@@ -33,12 +38,18 @@ void TCPHandler::ListenForClinets()
         sockaddr_in clientAddress {};
         socklen_t clientAddressLength = sizeof(clientAddress);
         int clientFd = accept(fd, (sockaddr*)&clientAddress, &clientAddressLength);
-        std::thread(TCPHandler::HandleConnectionAsync, clientFd);
+        std::thread(TCPHandler::HandleConnectionAsync, clientFd, clientAddress);
     }
 }
 
 void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
 {
+    char addressChar[GlobalSettings::MaxCharAddressLength];
+    inet_ntop(AF_INET, &(clientAddress.sin_addr), addressChar, GlobalSettings::MaxCharAddressLength);
+    std::string ipAddress(addressChar);
+
+    Log::Write("New user connection from " + ipAddress);
+
     auto clientConnection = Server::addServerConnection(clientAddress);
 
     pollfd clientPoll {};
@@ -54,8 +65,16 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
             int len = read(fd, data, sizeof(data) - 1);
             if (len > 0)
             {
-                std::string text(data, len - 1);
-                // tu odebrany tekst trzeba przekonwertować
+                std::string recivedText(data, len - 1);
+
+                Log::Write(ipAddress + " sent request to TCP handler. Contents: '" + recivedText + "'");
+
+                IRequestData requestData = RequestConverter::Convert(recivedText);
+                IRequestResult requestResult = Server::ReciveRequest(requestData);
+                std::string textToSend = RequestConverter::Convert(requestResult);
+                write(fd, textToSend.c_str(), textToSend.size());
+
+                Log::Write("TCP handler answered " + ipAddress + " with contents: '" + textToSend + "'");
             }
         }
         else

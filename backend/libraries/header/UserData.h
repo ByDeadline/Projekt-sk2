@@ -2,9 +2,10 @@
 
 #include <string>
 
-class User
+#include <IRequestData.h>
+
+class UserData : public IRequestData
 {
 public:
     std::string username;
-    std::string id;
 };
