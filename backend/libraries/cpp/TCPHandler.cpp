@@ -21,8 +21,6 @@ TCPHandler::TCPHandler()
 
 void TCPHandler::ListenForClinets()
 {
-    Log::Write("TCP listen started.");
-
     sockaddr_in serverAddress {};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = INADDR_ANY;
@@ -31,6 +29,7 @@ void TCPHandler::ListenForClinets()
     int fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     bind(fd, (sockaddr*)&serverAddress, sizeof(serverAddress));
 
+    Log::Write("TCP listen started.");
     while (this->listenOn)
     {
         listen(fd, GlobalSettings::TCPSocketMaxRequests);
@@ -38,7 +37,7 @@ void TCPHandler::ListenForClinets()
         sockaddr_in clientAddress {};
         socklen_t clientAddressLength = sizeof(clientAddress);
         int clientFd = accept(fd, (sockaddr*)&clientAddress, &clientAddressLength);
-        std::thread(TCPHandler::HandleConnectionAsync, clientFd, clientAddress);
+        std::thread* th = new std::thread(TCPHandler::HandleConnectionAsync, clientFd, clientAddress);
     }
 }
 

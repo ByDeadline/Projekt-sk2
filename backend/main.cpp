@@ -5,11 +5,17 @@
 #include <cstdio>
 #include <unistd.h>
 #include <fcntl.h>
+#include <thread>
 
 #include <TCPHandler.h>
 
 int main()
 {
-    TCPHandler tcpHandler;
+    std::thread tcpThread([]() {
+        TCPHandler tcpHandler;
+    });
+
+    tcpThread.join();
+
     return 0;
 }

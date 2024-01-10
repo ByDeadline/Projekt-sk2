@@ -17,9 +17,10 @@ std::list<std::shared_ptr<ServerConnection>> Server::getServerConnections()
 
 std::shared_ptr<ServerConnection> Server::addServerConnection(sockaddr_in clientAddress)
 {
-    std::shared_ptr<ServerConnection> serverConnection;
+    auto serverConnection = std::make_shared<ServerConnection>();
     serverConnection->clientId = Server::idCounter++;
     serverConnection->clientAddress = clientAddress;
+    serverConnection->connected = true;
     Server::serverConnections.push_back(serverConnection);
 
     return serverConnection;
