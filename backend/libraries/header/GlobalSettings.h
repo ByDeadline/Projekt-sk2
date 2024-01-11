@@ -19,4 +19,6 @@ public:
 
     /// @brief Time in ms after which the TCP server timeouts
     static const int TCPUserConnectionTimeout = 30000;
+
+    static const int LobbyMaxUsers = 5;
 };

@@ -66,7 +66,6 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
 {
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
     auto userActionResult = std::make_shared<UserActionResult>();
-    userActionResult->resultConclusion = ResultType::AddUser;
 
     if (Server::GetUserById(userData->clientId) != nullptr)
     {
@@ -95,7 +94,6 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
 {
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
     auto userActionResult = std::make_shared<UserActionResult>();
-    userActionResult->resultConclusion = ResultType::RemoveUser;
 
     auto user = UserHandler::GetUserByUserId(userData->username);
     if (user != nullptr)
