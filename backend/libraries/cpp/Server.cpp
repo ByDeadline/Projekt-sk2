@@ -26,6 +26,15 @@ std::shared_ptr<User> Server::GetUserById(int clientId)
     return nullptr;
 }
 
+void Server::RemoveUserById(int clientId)
+{
+    for (auto connection : Server::serverConnections)
+    {
+        if (connection->clientId == clientId)
+            return connection->user.reset();
+    }
+}
+
 std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in clientAddress)
 {
     auto serverConnection = std::make_shared<ServerConnection>();
@@ -69,6 +78,9 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::UserLogin:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for creating a user");
             return UserHandler::HandleLogin(requestData);
+        case RequestType::UserLogout:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for loging out");
+            return UserHandler::HandleLogout(requestData);
     }
 
     Log::Write(std::to_string(requestData->clientId) + "Server did not recognise the request");

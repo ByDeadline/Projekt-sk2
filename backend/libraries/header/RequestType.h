@@ -3,5 +3,6 @@
 enum RequestType
 {
     UserLogin,
+    UserLogout,
     Unknown
 };

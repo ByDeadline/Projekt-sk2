@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 /// @brief A static class that stores basic global settings for the whole application
 class GlobalSettings
 {

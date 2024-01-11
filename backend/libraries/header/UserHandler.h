@@ -16,7 +16,10 @@ private:
     static std::list<std::shared_ptr<User>> users;
 
 public:
-    static std::shared_ptr<User> GetUser(std::string username);
+    static std::shared_ptr<User> GetUserByUsername(std::string username);
+    static std::shared_ptr<User> GetUserByUserId(std::string userId);
     static std::string AddUser(std::string username, int clientId);
+    static void RemoveUser(std::string userId, int clientId);
     static std::shared_ptr<IRequestResult> HandleLogin(std::shared_ptr<IRequestData> requestData);
+    static std::shared_ptr<IRequestResult> HandleLogout(std::shared_ptr<IRequestData> requestData);
 };
