@@ -70,7 +70,7 @@ void Config::updateSettings()
     }
     else
     {
-        std::cout << "Unable to open config file" << std::endl;
+        std::cout << "Unable to open config file. Creating config file with default values" << std::endl;
         
         // Create config file with default values
         Config::configFile = std::fstream(Config::configFilePath, std::ios::out);
