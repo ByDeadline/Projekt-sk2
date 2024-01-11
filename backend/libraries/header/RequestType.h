@@ -6,5 +6,6 @@ enum RequestType
     UserLogout,
     CreateLobby,
     ShowLobbies,
+    JoinLobby,
     Unknown
 };

@@ -42,7 +42,7 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
     {
         if (items.front() == "login" || items.front() == "logout")
             return UserRequestConverter::Convert(items);
-        else if (items.front() == "create_lobby" || items.front() == "show_lobbies")
+        else if (items.front() == "create_lobby" || items.front() == "show_lobbies" || items.front() == "join_lobby")
             return LobbyRequestConverter::Convert(items);
     }
 

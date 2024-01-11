@@ -19,6 +19,8 @@ public:
     static std::string CreateLobby();
     static Lobby::LobbyResult JoinLobby(std::string userId, std::string lobbyId);
     static std::shared_ptr<Lobby> GetLobbyById(std::string lobbyId);
+    static bool CheckUserInAnyLobby(std::string userId);
+    static std::shared_ptr<IRequestResult> HandleJoinLobby(std::shared_ptr<IRequestData> requestData);
     static std::shared_ptr<IRequestResult> HandleCreateLobby(std::shared_ptr<IRequestData> requestData);
     static std::shared_ptr<IRequestResult> HandleShowLobbies(std::shared_ptr<IRequestData> requestData);
 };

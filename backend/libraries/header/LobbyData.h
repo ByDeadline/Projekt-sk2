@@ -8,4 +8,5 @@ class LobbyData : public IRequestData
 {
 public:
     std::string userId;
+    std::string lobbyId;
 };
