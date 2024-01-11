@@ -80,7 +80,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
     {
         std::string userId = UserHandler::AddUser(userData->username, userData->clientId);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
-        userActionResult->uniqueCode = userId;
+        userActionResult->setUniqueCode(userId);
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged in user " + userData->username + userId);
         
         return userActionResult;
@@ -102,7 +102,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
     {
         UserHandler::RemoveUser(user->id, userData->clientId);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
-        userActionResult->uniqueCode = userData->username;
+        userActionResult->setUniqueCode(userData->username);
 
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged out user " + userData->username);
         return userActionResult;

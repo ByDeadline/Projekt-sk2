@@ -7,7 +7,6 @@
 #include "../header/IRequestResult.h"
 #include "../header/UserRequestConverter.h"
 #include "../header/RequestType.h"
-#include "../header/UserActionResultConverter.h"
 
 std::list<std::string> RequestConverter::DivideData(std::string data)
 {
@@ -51,12 +50,5 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
 
 std::string RequestConverter::Convert(std::shared_ptr<IRequestResult> data)
 {
-    switch (data->resultConclusion)
-    {
-        case RequestType::UserLogin:
-        case RequestType::UserLogout:
-            return UserActionResultConverter::ConvertUserLogin(data);
-    }
-
-    return "unknown error";
+    return data->GetMessage();
 }
