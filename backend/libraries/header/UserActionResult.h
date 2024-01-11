@@ -12,7 +12,8 @@ public:
     {
         Success,
         UsernameAlreadyExists,
-        ClientAlreadyLoggedIn
+        ClientAlreadyLoggedIn,
+        WrongIdOrNotLoggedIn
     };
     ResultTypeEnum resultType;
     std::string GetMessage() override { return this->resultTypeMessages[this->resultType]; }
@@ -23,6 +24,7 @@ private:
     {
         { ResultTypeEnum::Success, "Successfuly added the user" },
         { ResultTypeEnum::UsernameAlreadyExists, "A user with the same nickname already exists" },
-        { ResultTypeEnum::ClientAlreadyLoggedIn, "Client is already logged in" }
+        { ResultTypeEnum::ClientAlreadyLoggedIn, "Client is already logged in" },
+        { ResultTypeEnum::WrongIdOrNotLoggedIn, "Given Id is incorrect or the user is not logged in" }
     };
 };

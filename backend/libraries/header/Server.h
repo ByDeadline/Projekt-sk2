@@ -24,6 +24,8 @@ public:
 
     static std::shared_ptr<User> GetUserById(int clientId);
 
+    static void RemoveUserById(int clientId);
+
     static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress);
 
     static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress, std::shared_ptr<User> user);

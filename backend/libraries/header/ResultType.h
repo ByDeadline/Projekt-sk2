@@ -3,5 +3,6 @@
 enum ResultType
 {
     AddUser,
+    RemoveUser,
     Unknown1
 };

@@ -40,7 +40,7 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
     
     if (items.size() != 0)
     {
-        if (items.front() == "login")
+        if (items.front() == "login" || items.front() == "logout")
             return UserRequestConverter::Convert(items);
     }
 
@@ -54,6 +54,7 @@ std::string RequestConverter::Convert(std::shared_ptr<IRequestResult> data)
     switch (data->resultConclusion)
     {
         case RequestType::UserLogin:
+        case RequestType::UserLogout:
             return UserActionResultConverter::ConvertUserLogin(data);
     }
 
