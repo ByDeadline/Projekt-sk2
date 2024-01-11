@@ -21,14 +21,21 @@
             echo "nix develop"
           '';
 
-          packages = with pkgs; [
+          packages = (with pkgs; [
             cmake
             bash
             gpp
             gcc
             clang-tools_17
             git
-          ];
+
+            python311Full
+          ]) ++ (with pkgs.python311Packages; [
+            pip
+            pygame
+            pygame-gui
+            numpy
+          ]);
         };
     };
 }
