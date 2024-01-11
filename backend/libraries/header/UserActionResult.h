@@ -18,13 +18,19 @@ public:
     ResultTypeEnum resultType;
     std::string GetMessage() override { return this->resultTypeMessages[this->resultType]; }
 
-    std::string uniqueCode;
+    void setUniqueCode(std::string uniqueCode) { this->uniqueCode = uniqueCode; this->CreateResultTypeMessage(); }
+
+    UserActionResult() { this->CreateResultTypeMessage(); }
 private:
-    std::map<ResultTypeEnum, std::string> resultTypeMessages
-    {
-        { ResultTypeEnum::Success, "Successfuly added the user" },
-        { ResultTypeEnum::UsernameAlreadyExists, "A user with the same nickname already exists" },
-        { ResultTypeEnum::ClientAlreadyLoggedIn, "Client is already logged in" },
-        { ResultTypeEnum::WrongIdOrNotLoggedIn, "Given Id is incorrect or the user is not logged in" }
+    std::string uniqueCode;
+    std::map<ResultTypeEnum, std::string> resultTypeMessages;
+    void CreateResultTypeMessage() { 
+        resultTypeMessages =
+        {
+            { ResultTypeEnum::Success, "success," + this->uniqueCode },
+            { ResultTypeEnum::UsernameAlreadyExists, "failed,A user with the same nickname already exists" },
+            { ResultTypeEnum::ClientAlreadyLoggedIn, "failed,Client is already logged in" },
+            { ResultTypeEnum::WrongIdOrNotLoggedIn, "failed,Given Id is incorrect or the user is not logged in" }
+        };
     };
 };

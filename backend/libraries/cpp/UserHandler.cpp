@@ -66,7 +66,6 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
 {
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
     auto userActionResult = std::make_shared<UserActionResult>();
-    userActionResult->resultConclusion = ResultType::AddUser;
 
     if (Server::GetUserById(userData->clientId) != nullptr)
     {
@@ -80,7 +79,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
     {
         std::string userId = UserHandler::AddUser(userData->username, userData->clientId);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
-        userActionResult->uniqueCode = userId;
+        userActionResult->setUniqueCode(userId);
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged in user " + userData->username + userId);
         
         return userActionResult;
@@ -95,14 +94,13 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
 {
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
     auto userActionResult = std::make_shared<UserActionResult>();
-    userActionResult->resultConclusion = ResultType::RemoveUser;
 
     auto user = UserHandler::GetUserByUserId(userData->username);
     if (user != nullptr)
     {
         UserHandler::RemoveUser(user->id, userData->clientId);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
-        userActionResult->uniqueCode = userData->username;
+        userActionResult->setUniqueCode(userData->username);
 
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged out user " + userData->username);
         return userActionResult;

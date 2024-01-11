@@ -7,7 +7,7 @@
 #include "../header/IRequestResult.h"
 #include "../header/UserRequestConverter.h"
 #include "../header/RequestType.h"
-#include "../header/UserActionResultConverter.h"
+#include "../header/LobbyRequestConverter.h"
 
 std::list<std::string> RequestConverter::DivideData(std::string data)
 {
@@ -42,6 +42,8 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
     {
         if (items.front() == "login" || items.front() == "logout")
             return UserRequestConverter::Convert(items);
+        else if (items.front() == "create_lobby" || items.front() == "show_lobbies")
+            return LobbyRequestConverter::Convert(items);
     }
 
     auto unknownData = std::make_shared<IRequestData>();
@@ -51,12 +53,5 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
 
 std::string RequestConverter::Convert(std::shared_ptr<IRequestResult> data)
 {
-    switch (data->resultConclusion)
-    {
-        case RequestType::UserLogin:
-        case RequestType::UserLogout:
-            return UserActionResultConverter::ConvertUserLogin(data);
-    }
-
-    return "unknown error";
+    return data->GetMessage();
 }

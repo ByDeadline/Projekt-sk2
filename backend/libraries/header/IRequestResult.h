@@ -8,8 +8,5 @@
 class IRequestResult
 {
 public:
-    enum ResultTypeEnum {};
-    virtual std::string GetMessage() { return ""; }
-    ResultTypeEnum resultType;
-    ResultType resultConclusion;
+    virtual std::string GetMessage() { return "unknown error"; }
 };
