@@ -8,9 +8,13 @@
 #include <thread>
 
 #include <TCPHandler.h>
+#include "libraries/header/Config.h"
 
 int main()
 {
+    Config::setUpLog();
+    Config::updateSettings();
+
     std::thread tcpThread([]() {
         TCPHandler tcpHandler;
     });

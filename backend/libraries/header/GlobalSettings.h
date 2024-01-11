@@ -7,7 +7,7 @@ class GlobalSettings
 {
 public:
     /// @brief Server port for TCP/UDP
-    static const int ServerPort = 1234;
+    static int ServerPort;
 
     /// @brief Max clients for TCP listen
     static const int TCPSocketMaxRequests = 100;
