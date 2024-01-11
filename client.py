@@ -15,6 +15,7 @@ RED = (255, 0, 0)
 logged_in = False
 timer = 100
 
+
 def wrap_string(string, max_width):
     return textwrap.wrap(string, max_width)
 
@@ -23,6 +24,7 @@ class ServerCommunication:
 
         self.ip = ip
         self.port = port
+        self.sent_letters = []
         """self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.ip, self.port))"""
 
@@ -66,6 +68,8 @@ class ServerCommunication:
 
     def send_letter(self, letter):
         # self.socket.send(letter.encode())
+
+        self.sent_letters.append(letter)
         return True
 
     def set_name(self, name):
@@ -203,16 +207,17 @@ class InputBox:
         self.y = y
         self.w = w
         self.h = h
-        self.rect = pygame.Rect(x, y, w, h)
-        self.text = text
+        self.rect = pygame.Rect(x - w//2, y, w, h)
+        self.visible_text = text
         self.function_after_enter = function_after_enter
         self.active = True
         self.color = COLOR_LIGHT_BLUE
+        self.whole_text = ""
         if self.active:
             self.color = COLOR_LIGHT_BLUE
         else:
             self.color = COLOR_DARK_BLUE
-        self.txt_surface = pygame.font.Font(None, 32).render("".join(self.text), True, self.color)
+        self.txt_surface = pygame.font.Font(None, 32).render("".join(self.visible_text), True, self.color)
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -223,25 +228,28 @@ class InputBox:
             else:
                 self.color = COLOR_DARK_BLUE
             # Change the current color of the input box.
-            self.txt_surface = pygame.font.Font(None, 32).render("".join(self.text), True, self.color)
+            self.txt_surface = pygame.font.Font(None, 32).render("".join(self.visible_text), True, self.color)
         if event.type == pygame.KEYDOWN:
             if self.active:
                 if event.key == pygame.K_RETURN:
-                    self.function_after_enter(self.text)
-                    self.text = []
+                    self.function_after_enter(self.visible_text)
+                    self.visible_text = []
                 elif event.key == pygame.K_BACKSPACE:
-                    print(self.text)
-                    self.text = self.text.pop()
+                    if len(self.visible_text) > 0:
+                        if self.visible_text[-1] == self.whole_text[-1]:
+                            self.whole_text = self.whole_text[:-1]
+                        self.visible_text.pop()
                 else:
-                    if len(self.text) >= 9:
+                    if len(self.visible_text) >= 9:
                         self.update(-10, 0, 10)
                     print(event.unicode)
-                    self.text.append(event.unicode)
+                    self.visible_text.append(event.unicode)
+                    self.whole_text += event.unicode
                 # Re-render the text.
-                self.txt_surface = pygame.font.Font(None, 32).render("".join(self.text), True, self.color)
+                self.txt_surface = pygame.font.Font(None, 32).render("".join(self.visible_text), True, self.color)
                 # bounding rectangle of the text
                 text_rect = self.txt_surface.get_rect(topleft=(self.rect.x + 5, self.rect.y + 10))
-
+        self.draw(screen)
     def update(self, x=0, y=0, w=0, h=0):
         # Resize the box.
         self.x += x
@@ -251,13 +259,14 @@ class InputBox:
         self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def draw(self, screen):
+        self.txt_surface = pygame.font.Font(None, 32).render("".join(self.visible_text), True, self.color)
         # Blit the text.
         screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 10))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
 
     def get_text(self):
-        return self.text
+        return self.visible_text
 
 
 def draw_room_list(screen, game, player):
@@ -343,7 +352,7 @@ def draw_room(screen, room):
     textRect.center = (SCREEN_WIDTH // 2, 200)
     screen.blit(text, textRect)
 
-def draw_game(screen, game, server,cars):
+def draw_game(screen, game, server,cars,input_box):
 
 
     font_size = 20
@@ -361,12 +370,22 @@ def draw_game(screen, game, server,cars):
     text_width = 0
     line = 0
 
-    text_input = InputBox(SCREEN_WIDTH // 2 - 70, SCREEN_HEIGHT - 100, 140, 32, server.send_letter)
+    text_index = 0
+
+    text_input = input_box
     for i in range(len(wrapped_string)):
         for j in range(len(wrapped_string[i])):
-            text = font.render(wrapped_string[i][j], True, random.choice([COLOR_DARK_BLUE, COLOR_GREEN, RED]))
+            if text_index < len(input_box.whole_text):
+                print(game_string[text_index],input_box.whole_text[text_index])
+                if game_string[text_index] == input_box.whole_text[text_index]:
+                    text = font.render(wrapped_string[i][j], True, COLOR_GREEN)
+                else:
+                    text = font.render(wrapped_string[i][j], True, RED)
+            else:
+                text = font.render(wrapped_string[i][j], True, COLOR_DARK_BLUE)
             screen.blit(text, (left_margin + text_width, SCREEN_HEIGHT//2 + line * 20))
             text_width += 3+ text.get_width()
+            text_index+=1
         text_width = 0
         line += 1
     text_input.draw(screen)
@@ -408,17 +427,21 @@ def main(logged_in=False):
     black_car = pygame.transform.scale(black_car, (100, 100))
     cars = [blue_car, red_car, white_car, black_car]
 
+    input_box_name = InputBox(SCREEN_WIDTH // 2 , (SCREEN_HEIGHT // 2) + 50, 140, 32, player.set_name)
+    input_box_answer = InputBox(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 400, 400, 32, server.send_letter)
     while True:
-        input_box_for_name = InputBox(SCREEN_WIDTH // 2 - 70, (SCREEN_HEIGHT // 2) + 50, 140, 32, player.set_name)
+
         # Fill the background with white
         screen.fill((255, 255, 255))
-        # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            # Handle user name input events
             if not logged_in:
-                input_box_for_name.handle_event(event)
+                input_box_name.handle_event(event)
+
+            # Handle room list events
             if logged_in and player.room == None:
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
@@ -436,41 +459,67 @@ def main(logged_in=False):
                         player.room = None
                         player.name = ""
                         break
+
+            # Handle room events
             if logged_in and player.room != None:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        player.room.remove_player(player)
-                        player.room = None
-                        break
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        mouse_pos = event.pos
-                        print(mouse_pos)
-                        if SCREEN_WIDTH // 2 - 45 < mouse_pos[0] < SCREEN_WIDTH // 2 + 45 and SCREEN_HEIGHT - 100 < mouse_pos[1] < SCREEN_HEIGHT - 70:
-                            if player.room.player_ready(player.name):
-                                print("ready")
-                            else:
-                                player.room.player_unready(player.name)
-                                print("unready")
+                if not player.room.started:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            player.room.remove_player(player)
+                            player.room = None
+                            break
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        if event.button == 1:
+                            mouse_pos = event.pos
+                            print(mouse_pos)
+                            if SCREEN_WIDTH // 2 - 45 < mouse_pos[0] < SCREEN_WIDTH // 2 + 45 and SCREEN_HEIGHT - 100 < mouse_pos[1] < SCREEN_HEIGHT - 70:
+                                if player.room.player_ready(player.name):
+                                    print("ready")
+                                else:
+                                    player.room.player_unready(player.name)
+                                    print("unready")
 
+                # Handle game events
+                else:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            player.room.remove_player(player)
+                            player.room = None
+                            break
+                        if event.key == pygame.K_SPACE:
+                            if server.send_letter("".join(input_box_name.get_text())):
+                                input_box_answer.visible_text = []
+                                input_box_answer.whole_text+=" "
+                                input_box_answer.draw(screen)
+                        else:
+                            input_box_answer.handle_event(event)
 
+        # Draw the game
 
+        # Draw login screen
         if not logged_in:
-            draw_player_name_input(screen, input_box_for_name)
+            draw_player_name_input(screen, input_box_name)
             if player.name != "":
                 logged_in = True
+
+        # Draw room list
         elif player.room == None:
             draw_room_list(screen, game,player)
 
+        # Draw room and game
         elif player.room != None:
+
+            # Draw game
             if player.room.started:
-                draw_game(screen, game, server,cars)
+                draw_game(screen, game, server,cars,input_box_answer)
+
+            # Draw room
             else:
                 draw_room(screen, player.room)
                 if len(player.room.ready_players) == player.room.player_count and player.room.player_count > 1:
                     player.room.start_game()
                     game.start_game(player.room)
-        # Flip the display
+
         pygame.display.flip()
 
 
