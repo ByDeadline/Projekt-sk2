@@ -1,0 +1,3 @@
+/home/kuba/Documents/sk2/backend/build/CMakeFiles/server.dir
+/home/kuba/Documents/sk2/backend/build/CMakeFiles/edit_cache.dir
+/home/kuba/Documents/sk2/backend/build/CMakeFiles/rebuild_cache.dir

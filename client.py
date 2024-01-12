@@ -29,22 +29,23 @@ class ServerCommunication:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.ip, self.port))
         self.my_id = None
-    def get_rooms(self):
+    def get_rooms(self,game):
         # Possible statuses: Waiting, Playing
         rooms = {}
         if self.my_id == None:
             return rooms
-
-        try:
-            self.socket.send(("show_lobbies,"+self.my_id).encode())
-        except:
-            pass
+        self.socket.send(("show_lobbies,"+"".join(self.my_id)).encode())
         response = self.socket.recv(1024).decode()
-        for room in response.split('\n'):
-            if room != "":
-                rooms[room.split(',')[0]] = [int(room.split(',')[1])]
-        print(rooms)
-        return rooms
+        if "success" in response:
+            response=response.replace('success,','')
+
+            for room in response.split('\n'):
+                print(room)
+                if room != "":
+                    rooms[room.split(',')[0]] = room.split(',')[1]
+                    game.create_room
+            print(rooms)
+            return rooms
 
     def send_join_room(self, room_name):
         # self.socket.send(room_name.encode())
