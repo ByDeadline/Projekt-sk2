@@ -5,9 +5,11 @@
 
 #include "../header/IRequestResult.h"
 
+/// @brief Holds information to be sent to the client about the request that was made to User
 class UserActionResult : public IRequestResult
 {
 public:
+    /// @brief Represents different type of answers
     enum ResultTypeEnum
     {
         Success,
@@ -16,14 +18,25 @@ public:
         WrongIdOrNotLoggedIn
     };
     ResultTypeEnum resultType;
+
+    /// @brief Gets the message to be sent to the user based on the set result type
+    /// @return Message to be sent to user
     std::string GetMessage() override { return this->resultTypeMessages[this->resultType]; }
 
+    /// @brief Sets the unique code
+    /// @param lobbyId Unique code
     void setUniqueCode(std::string uniqueCode) { this->uniqueCode = uniqueCode; this->CreateResultTypeMessage(); }
 
+    /// @brief Constructor creates the message
     UserActionResult() { this->CreateResultTypeMessage(); }
 private:
+    /// @brief Unique code of the user
     std::string uniqueCode;
+
+    /// @brief A dictionary holding a text to be sent to the user based on the set result type
     std::map<ResultTypeEnum, std::string> resultTypeMessages;
+
+    /// @brief Constructs the dictionary holding a text to be sent to the user based on the set result type
     void CreateResultTypeMessage() { 
         resultTypeMessages =
         {

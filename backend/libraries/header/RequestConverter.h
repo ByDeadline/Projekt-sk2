@@ -18,7 +18,13 @@ private:
     static std::list<std::string> DivideData(std::string data);
 
 public:
+    /// @brief Converts a text to request data
+    /// @param data Text to be converted
+    /// @return Request data
     static std::shared_ptr<IRequestData> Convert(std::string data);
     
+    /// @brief Converts request data to text
+    /// @param data Request result object to be converted
+    /// @return Text from request result
     static std::string Convert(std::shared_ptr<IRequestResult> data);
 };

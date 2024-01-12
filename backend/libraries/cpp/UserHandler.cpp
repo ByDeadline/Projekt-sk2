@@ -5,7 +5,6 @@
 #include "../header/UserData.h"
 #include "../header/User.h"
 #include "../header/IRequestResult.h"
-#include "../header/ResultType.h"
 #include "../header/Log.h"
 #include "../header/Server.h"
 
