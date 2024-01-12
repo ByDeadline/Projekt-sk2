@@ -71,7 +71,7 @@ class ServerCommunication:
         self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
         if response.split(',')[0] == "success":
-            self.my_id = response.split(',')[1]
+            self.my_id = response.split(',')[1:]
             return response.split(',')[1]
         return None
 
