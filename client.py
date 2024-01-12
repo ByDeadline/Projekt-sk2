@@ -33,8 +33,9 @@ class ServerCommunication:
         # Possible statuses: Waiting, Playing
         rooms = {}
         if self.my_id == None:
-            return rooms
-        self.socket.send(("show_lobbies,"+"".join(self.my_id)).encode())
+            return roomslogin
+        msg = "show_lobbies,"+self.my_id
+        self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
         if "success" in response:
             response=response.replace('success,','')
@@ -43,7 +44,7 @@ class ServerCommunication:
                 print(room)
                 if room != "":
                     rooms[room.split(',')[0]] = room.split(',')[1]
-                    game.create_room
+                    game.create_room(room.split(',')[0])
             print(rooms)
             return rooms
 
@@ -72,7 +73,8 @@ class ServerCommunication:
         self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
         if response.split(',')[0] == "success":
-            self.my_id = response.split(',')[1:]
+            self.my_id = response.split(',')[1:][0]
+            print(self.my_id)
             return response.split(',')[1:]
         return None
 
@@ -262,7 +264,7 @@ class InputBox:
 
 def draw_room_list(screen, game, player,server):
     font_size = 15
-    rooms = server.get_rooms()
+    rooms = server.get_rooms(game)
     record_height = 40
     record_width = SCREEN_WIDTH - 20
     top_margin = 50
@@ -275,19 +277,20 @@ def draw_room_list(screen, game, player,server):
     font = pygame.font.Font(None, 32)
     name_surface = font.render(''.join(player.name), True, (0, 0, 0))
     screen.blit(name_surface, (50, 10))
-
-    for i in range(len(rooms)):
-        room = rooms[i]
+    i = 0
+    for room in rooms:
         pygame.draw.rect(screen, COLOR_GREY, (10,top_margin + record_height * i, record_width, record_height), 2, 3)
         font = pygame.font.Font('freesansbold.ttf', font_size)
-        text = font.render(room.name, True, COLOR_DARK_BLUE)
+        text = font.render(room, True, COLOR_DARK_BLUE)
         textRect = text.get_rect()
         textRect.center = (50, text_margin + top_margin + record_height * i)
         screen.blit(text, textRect)
-        text = font.render(str(room.player_count) + "/4", True, COLOR_DARK_BLUE)
+        text = font.render(str(rooms[room]) + "/4", True, COLOR_DARK_BLUE)
         textRect = text.get_rect()
         textRect.center = (record_width - 30, 75 + record_height * i)
         screen.blit(text, textRect)
+        i+=1
+
 
 
 def draw_player_name_input(screen, input_box):
@@ -431,6 +434,7 @@ def main(logged_in=False):
                     if event.button == 1:
                         mouse_pos = event.pos
                         rooms = game.get_rooms()
+                        print(rooms)
                         for i in range(len(rooms)):
                             room = rooms[i]
                             if 10 < mouse_pos[0] < SCREEN_WIDTH - 10 and 50 + 40 * i < mouse_pos[1] < 90 + 40 * i:
