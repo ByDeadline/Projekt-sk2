@@ -33,7 +33,7 @@ class ServerCommunication:
         # Possible statuses: Waiting, Playing
         rooms = {}
         if self.my_id == None:
-            return roomslogin
+            return rooms
         msg = "show_lobbies,"+self.my_id
         self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
