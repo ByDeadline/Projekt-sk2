@@ -25,9 +25,9 @@ class ServerCommunication:
         self.ip = ip
         self.port = port
         self.sent_letters = []
-        """self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.ip, self.port))"""
 
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.connect((self.ip, self.port))
     def get_rooms(self):
         # Possible statuses: Waiting, Playing
 
@@ -73,8 +73,11 @@ class ServerCommunication:
         return True
 
     def set_name(self, name):
-        # self.socket.send(name.encode())
-        return True
+        self.socket.send("login,"+name.encode())
+        response = self.socket.recv(1024).decode()
+        if response.split(',')[0] == "Success":
+            return response.split(',')[1]
+        return None
 
     def get_players_in_room(self):
         # self.socket.send("get_players_in_room".encode())
@@ -146,6 +149,7 @@ class Player():
         self.name = name
         self.room = room
         self.server = server_communication
+        self.my_id = None
 
     def join_room(self, room):
         if room.started:
@@ -157,7 +161,8 @@ class Player():
         return True
 
     def set_name(self, name):
-        if self.server.set_name(name):
+        self.my_id=self.server.send_name(name)
+        if self.my_id != None:
 
             self.name = ''.join(name)
             return True
@@ -383,7 +388,11 @@ screen = pygame.display.set_mode([SCREEN_HEIGHT, SCREEN_WIDTH], )
 
 
 def main(logged_in=False):
-    server = ServerCommunication("localhost", 9999)
+    try:
+        server = ServerCommunication("localhost", 9999)
+    except:
+        print("Server not found")
+        exit()
     game = Game(server)
     game.create_room("Room 1")
     game.create_room("Room 2")
