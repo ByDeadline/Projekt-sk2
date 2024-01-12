@@ -28,28 +28,22 @@ class ServerCommunication:
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.ip, self.port))
+        self.my_id = None
     def get_rooms(self):
         # Possible statuses: Waiting, Playing
-
-        '''self.socket.send("get_rooms_count".encode())
-        rooms_count = self.socket.recv(1024).decode()
-        rooms_list = []
         rooms = {}
-        for x in range(rooms_count):
-            self.socket.send("get_room".encode())
-            rooms_list.append(socket.recv(1024).decode())
-        for x in rooms_list:
-            rooms[x]=[]
-            self.socket.send(("get_players_count "+ x).encode())
-            rooms[x].append(socket.recv(1024).decode())
-            self.socket.send(("get_room_status "+ x).encode())
-            rooms[x].append(socket.recv(1024).decode())'''
-        rooms = {
-            "Room 1": [2, "Waiting"],
-            "Room 2": [3, "Waiting"],
-            "Room 3": [4, "Playing"],
-            "Room 4": [1, "Waiting"]
-        }
+        if self.my_id == None:
+            return rooms
+
+        try:
+            self.socket.send(("show_lobbies,"+self.my_id).encode())
+        except:
+            pass
+        response = self.socket.recv(1024).decode()
+        for room in response.split('\n'):
+            if room != "":
+                rooms[room.split(',')[0]] = [int(room.split(',')[1])]
+        print(rooms)
         return rooms
 
     def send_join_room(self, room_name):
@@ -73,9 +67,11 @@ class ServerCommunication:
         return True
 
     def set_name(self, name):
-        self.socket.send("login,"+name.encode())
+        msg = "login,"+"".join(name)
+        self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
-        if response.split(',')[0] == "Success":
+        if response.split(',')[0] == "success":
+            self.my_id = response.split(',')[1]
             return response.split(',')[1]
         return None
 
@@ -161,7 +157,7 @@ class Player():
         return True
 
     def set_name(self, name):
-        self.my_id=self.server.send_name(name)
+        self.my_id=self.server.set_name(name)
         if self.my_id != None:
 
             self.name = ''.join(name)
@@ -389,7 +385,7 @@ screen = pygame.display.set_mode([SCREEN_HEIGHT, SCREEN_WIDTH], )
 
 def main(logged_in=False):
     try:
-        server = ServerCommunication("localhost", 9999)
+        server = ServerCommunication("localhost", 1234)
     except:
         print("Server not found")
         exit()
