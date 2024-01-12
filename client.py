@@ -259,9 +259,9 @@ class InputBox:
         return self.visible_text
 
 
-def draw_room_list(screen, game, player):
+def draw_room_list(screen, game, player,server):
     font_size = 15
-    rooms = game.get_rooms()
+    rooms = server.get_rooms()
     record_height = 40
     record_width = SCREEN_WIDTH - 20
     top_margin = 50
