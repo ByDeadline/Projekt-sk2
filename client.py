@@ -490,7 +490,7 @@ def main(logged_in=False):
 
         # Draw room list
         elif player.room == None:
-            draw_room_list(screen, game,player)
+            draw_room_list(screen, game,player,server)
 
         # Draw room and game
         elif player.room != None:
