@@ -389,20 +389,6 @@ def main(logged_in=False):
     except:
         print("Server not found")
         exit()
-    game = Game(server)
-    game.create_room("Room 1")
-    game.create_room("Room 2")
-    game.create_room("Room 3")
-    player = Player("", server)
-    player1 = Player("Player 1", server)
-    player2 = Player("Player 2", server)
-    player3 = Player("Player 3", server)
-    player1.join_room(game.rooms[0])
-    player2.join_room(game.rooms[0])
-    player3.join_room(game.rooms[0])
-    game.rooms[0].player_ready(player1.name)
-    game.rooms[0].player_ready(player2.name)
-    game.rooms[0].player_ready(player3.name)
 
     #test
 
