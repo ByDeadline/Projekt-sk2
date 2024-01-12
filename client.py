@@ -389,6 +389,9 @@ def main(logged_in=False):
     except:
         print("Server not found")
         exit()
+    game = Game(server)
+    player = Player("", server)
+
 
     #test
 
