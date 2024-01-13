@@ -25,3 +25,26 @@ Lobby::LobbyResult Lobby::AddUser(User user)
     this->lobbyUsers.push_back(user);
     return Lobby::LobbyResult::Success2;
 }
+
+bool Lobby::CheckUserInLobby(std::string userId)
+{
+    for (auto user : this->lobbyUsers)
+    {
+        if (user.id == userId)
+            return true;
+    }
+
+    return false;
+}
+
+Lobby::LobbyResult Lobby::RemoveUser(std::string userId)
+{
+    if (this->CheckUserInLobby(userId))
+    {
+        this->lobbyUsers.remove_if([=](User user) { return user.id == userId; });
+        
+        return Lobby::LobbyResult::Success2;
+    }
+
+    return Lobby::LobbyResult::UserNotInLobby;
+}

@@ -5,18 +5,10 @@ std::shared_ptr<IRequestData> LobbyRequestConverter::Convert(std::list<std::stri
 {
     auto lobbyData = std::make_shared<LobbyData>();
 
-    if (data.size() != 2)
-    {
-        lobbyData->SetRequestType(RequestType::Unknown);
-    }
-
     bool requestFound = false;
+    bool get2 = false;
+    bool get3 = false;
 
-    bool createLobby = false;
-    bool showLobbies = false;
-
-    bool joinLobby = false;
-    bool getLobbyId = false;
 
     for (auto item : data)
     {
@@ -24,7 +16,7 @@ std::shared_ptr<IRequestData> LobbyRequestConverter::Convert(std::list<std::stri
         {
             requestFound = true;
             lobbyData->SetRequestType(RequestType::CreateLobby);
-            createLobby = true;
+            get2 = true;
             continue;
         }
 
@@ -32,7 +24,7 @@ std::shared_ptr<IRequestData> LobbyRequestConverter::Convert(std::list<std::stri
         {
             requestFound = true;
             lobbyData->SetRequestType(RequestType::ShowLobbies);
-            showLobbies = true;
+            get2 = true;
             continue;
         }
 
@@ -40,32 +32,31 @@ std::shared_ptr<IRequestData> LobbyRequestConverter::Convert(std::list<std::stri
         {
             requestFound = true;
             lobbyData->SetRequestType(RequestType::JoinLobby);
-            joinLobby = true;
+            get2 = true;
+            get3 = true;
             continue;
         }
 
-        if (createLobby)
+        if (item == "leave_lobby" && !requestFound)
         {
-            
-            lobbyData->userId = item;
-            return lobbyData;
-        }
-
-        if (showLobbies)
-        {
-            
-            lobbyData->userId = item;
-            return lobbyData;
-        }
-
-        if (joinLobby)
-        {
-            lobbyData->userId = item;
-            getLobbyId = true;
-            joinLobby = false;
+            requestFound = true;
+            lobbyData->SetRequestType(RequestType::LeaveLobby);
+            get2 = true;
+            get3 = true;
             continue;
         }
-        if (getLobbyId)
+
+        if (get2)
+        {
+            get2 = false;
+            lobbyData->userId = item;
+            if (!get3)
+                return lobbyData;
+            else
+                continue;
+        }
+
+        if (get3)
         {
             lobbyData->lobbyId = item;
             return lobbyData;

@@ -18,7 +18,8 @@ public:
         NotLoggedIn,
         AlreadyInLobby,
         LobbyFull,
-        LobbyNotFound
+        LobbyNotFound,
+        NotInLobby
     };
     ResultTypeEnum resultType;
 
@@ -63,7 +64,8 @@ private:
             { ResultTypeEnum::NotLoggedIn, "failed,Cannot create lobby because the user is not logged in" },
             { ResultTypeEnum::AlreadyInLobby, "failed,The user is already in lobby" },
             { ResultTypeEnum::LobbyFull, "failed,This lobby is full" },
-            { ResultTypeEnum::LobbyNotFound, "failed,Lobby with this id does not exist" }
+            { ResultTypeEnum::LobbyNotFound, "failed,Lobby with this id does not exist" },
+            { ResultTypeEnum::NotInLobby, "failed,User is not in this lobby" }
         };
     }
 };

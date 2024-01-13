@@ -45,11 +45,8 @@ bool LobbyHandler::CheckUserInAnyLobby(std::string userId)
 {
     for (auto lobby : LobbyHandler::lobbies)
     {
-        for(auto user : lobby->lobbyUsers)
-        {
-            if (user.id == userId)
-                return true;
-        }
+        if (lobby->CheckUserInLobby(userId))
+            return true;
     }
 
     return false;
@@ -91,6 +88,43 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IR
         lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::AlreadyInLobby;
         Log::Write(std::to_string(lobbyData->clientId) + ": This user is already in a lobby.");
 
+        return lobbyActionResult;
+    }
+
+    Log::Write(std::to_string(lobbyData->clientId) + ": User not logged in.");
+    lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NotLoggedIn;
+    return lobbyActionResult;
+}
+
+std::shared_ptr<IRequestResult> LobbyHandler::HandleLeaveLobby(std::shared_ptr<IRequestData> requestData)
+{
+    auto lobbyData = std::make_shared<LobbyData>(*dynamic_cast<LobbyData*>(requestData.get()));
+    auto user = UserHandler::GetUserByUserId(lobbyData->userId);
+
+    auto lobbyActionResult = std::make_shared<LobbyActionResult>();
+
+    if (user != nullptr)
+    {
+        auto lobby = LobbyHandler::GetLobbyById(lobbyData->lobbyId);
+        if (lobby == nullptr)
+        {
+            lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::LobbyNotFound;
+            Log::Write(std::to_string(lobbyData->clientId) + ": This user tried to leave a non existent lobby.");
+            return lobbyActionResult;
+        }
+
+        auto removeResult = lobby->RemoveUser(lobbyData->userId);
+        switch (removeResult)
+        {
+            case Lobby::LobbyResult::UserNotInLobby:
+                Log::Write(std::to_string(lobbyData->clientId) + ": The user is not in this lobby");
+                lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NotInLobby;
+                return lobbyActionResult;
+        }
+
+        Log::Write(std::to_string(lobbyData->clientId) + ": Removed user " + lobbyData->userId + " from lobby " + lobbyData->lobbyId);
+        lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::Success1;
+        lobbyActionResult->setLobbyId(lobbyData->lobbyId);
         return lobbyActionResult;
     }
 

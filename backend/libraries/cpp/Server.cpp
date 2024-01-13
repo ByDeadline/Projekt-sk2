@@ -91,6 +91,9 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::JoinLobby:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for joining a lobby");
             return LobbyHandler::HandleJoinLobby(requestData);
+        case RequestType::LeaveLobby:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for leaving a lobby");
+            return LobbyHandler::HandleLeaveLobby(requestData);
     }
 
     Log::Write(std::to_string(requestData->clientId) + "Server did not recognise the request");

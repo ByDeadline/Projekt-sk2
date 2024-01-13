@@ -8,5 +8,6 @@ enum RequestType
     CreateLobby,
     ShowLobbies,
     JoinLobby,
+    LeaveLobby,
     Unknown
 };

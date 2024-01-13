@@ -15,7 +15,8 @@ public:
         Success2,
         UserAlreadyInLobby,
         LobbyFull,
-        LobbyDoesNotExist
+        LobbyDoesNotExist,
+        UserNotInLobby
     };
 
     /// @brief Maximum amount of users that can be in the lobby
@@ -34,6 +35,16 @@ public:
     /// @param user User object to be added to the lobby
     /// @return Information about the result of adding the user
     LobbyResult AddUser(User user);
+
+    /// @brief Checks wheather the user is in this lobby
+    /// @param userId Unique id of the user
+    /// @return True if the user is in the lobby, false otherwise
+    bool CheckUserInLobby(std::string userId);
+
+    /// @brief Removes the user from this lobby
+    /// @param userId Unique id of the user
+    /// @return The result of removing
+    LobbyResult RemoveUser(std::string userId);
 
     /// @brief Method counts how many users are in the lobby
     /// @return Amount of users in the lobby
