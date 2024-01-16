@@ -20,4 +20,7 @@ public:
 
     /// @brief Flag showing if the client is connected
     bool connected;
+
+    /// @brief Client's file descriptor
+    int fd;
 };

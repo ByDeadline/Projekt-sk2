@@ -9,5 +9,7 @@ enum RequestType
     ShowLobbies,
     JoinLobby,
     LeaveLobby,
+    SetReady,
+    GiveProgress,
     Unknown
 };

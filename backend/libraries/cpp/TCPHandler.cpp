@@ -48,7 +48,7 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     inet_ntop(AF_INET, &(clientAddress.sin_addr), addressChar, GlobalSettings::MaxCharAddressLength);
     std::string ipAddress(addressChar);
 
-    auto clientConnection = Server::AddServerConnection(clientAddress);
+    auto clientConnection = Server::AddServerConnection(clientAddress, fd);
     Log::Write("New user connection from " + ipAddress + ". Assgined id: " + std::to_string(clientConnection->clientId));
 
     pollfd clientPoll {};
@@ -82,4 +82,12 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
             // klient nic nie robił przez 30s, sprawdźmy czy żyje.
         }
     }
+}
+
+void TCPHandler::SendWithFd(std::shared_ptr<ServerConnection> serverConnection, std::shared_ptr<IRequestResult> requestResult)
+{
+    std::string textToSend = RequestConverter::Convert(requestResult);
+    write(serverConnection->fd, textToSend.c_str(), textToSend.size());
+
+    Log::Write(std::to_string(serverConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
 }

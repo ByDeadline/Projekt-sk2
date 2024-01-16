@@ -8,6 +8,7 @@
 #include <IRequestResult.h>
 #include <IRequestData.h>
 #include <User.h>
+#include <Player.h>
 
 /// @brief A class that gives requests to other clasess and accepts them and gives it to the handler
 class Server
@@ -24,6 +25,8 @@ public:
     /// @return List of pointers containging a server connection of a client
     static std::list<std::shared_ptr<ServerConnection>> GetServerConnections();
 
+    static std::shared_ptr<ServerConnection> GetServerConnectionByUserId(std::string userId);
+
     /// @brief Finds a user based on client's connection id
     /// @param clientId Client's connection id
     /// @return Pointer to a user or nullptr if not found
@@ -36,13 +39,13 @@ public:
     /// @brief Adds a new server connection
     /// @param clientAddress Address of the client
     /// @return Pointer to a new server connection
-    static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress);
+    static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress, int fd);
 
     /// @brief Adds a new server connection
     /// @param clientAddress Address of the client
     /// @param user User to be added to the connection
     /// @return Pointer to a new server connection
-    static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress, std::shared_ptr<User> user);
+    static std::shared_ptr<ServerConnection> AddServerConnection(sockaddr_in clientAddress, int fd, std::shared_ptr<User> user);
 
     /// @brief Adds a user to the connection
     /// @param id Client's connection id
@@ -54,4 +57,9 @@ public:
     /// @param requestData Data sent by the client
     /// @return Request result the handler provided
     static std::shared_ptr<IRequestResult> ReciveRequest(std::shared_ptr<IRequestData> requestData);
+
+    /// @brief Sends information to a list of users
+    /// @param users List of users
+    /// @param requestResult Data to be sent
+    static void Send(std::list<Player> users, std::shared_ptr<IRequestResult> requestResult);
 };

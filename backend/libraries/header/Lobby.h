@@ -4,6 +4,7 @@
 #include <list>
 
 #include "User.h"
+#include "Player.h"
 
 /// @brief Represents a lobby which players can create and join to
 class Lobby
@@ -26,10 +27,15 @@ public:
     std::string lobbyId;
 
     /// @brief A list containig users that are in the lobby
-    std::list<User> lobbyUsers;
+    std::list<Player> lobbyUsers;
     
     /// @brief Constructor
     Lobby();
+
+    /// @brief Creates a player based on user
+    /// @param user A user on which to base the player
+    /// @return  A player object based on the user
+    Player CreatePlayer(User user);
 
     /// @brief Adds the selected user to the lobby
     /// @param user User object to be added to the lobby
@@ -45,6 +51,15 @@ public:
     /// @param userId Unique id of the user
     /// @return The result of removing
     LobbyResult RemoveUser(std::string userId);
+
+    /// @brief Sets the selected user as ready
+    /// @param userId Unique id of the user
+    /// @return The result of setting ready
+    LobbyResult SetUserReady(std::string userId);
+
+    /// @brief Method checks if all users are set as ready
+    /// @return True if user is ready, false otherwise
+    bool CheckAllUsersReady();
 
     /// @brief Method counts how many users are in the lobby
     /// @return Amount of users in the lobby

@@ -13,4 +13,6 @@ public:
     
     /// @brief Lobby's unique id
     std::string lobbyId;
+
+    std::string progress;
 };

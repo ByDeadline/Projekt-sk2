@@ -11,6 +11,13 @@ int Lobby::GetUserCount()
     return this->lobbyUsers.size();
 }
 
+Player Lobby::CreatePlayer(User user)
+{
+    Player player;
+    player.id = user.id;
+    player.username = user.username;
+}
+
 Lobby::LobbyResult Lobby::AddUser(User user)
 {
     if (this->GetUserCount() >= this->maxUsers)
@@ -22,7 +29,7 @@ Lobby::LobbyResult Lobby::AddUser(User user)
             return Lobby::LobbyResult::UserAlreadyInLobby;
     }
 
-    this->lobbyUsers.push_back(user);
+    this->lobbyUsers.push_back(CreatePlayer(user));
     return Lobby::LobbyResult::Success2;
 }
 
@@ -47,4 +54,29 @@ Lobby::LobbyResult Lobby::RemoveUser(std::string userId)
     }
 
     return Lobby::LobbyResult::UserNotInLobby;
+}
+
+Lobby::LobbyResult Lobby::SetUserReady(std::string userId)
+{
+    for (auto user : this->lobbyUsers)
+    {
+        if (user.id == userId)
+        {
+            user.isReady = true;
+            return Lobby::LobbyResult::Success2;
+        }
+    }
+
+    return Lobby::LobbyResult::UserNotInLobby;
+}
+
+bool Lobby::CheckAllUsersReady()
+{
+    for (auto user : this->lobbyUsers)
+    {
+        if (!user.isReady)
+            return false;
+    }
+
+    return true;
 }
