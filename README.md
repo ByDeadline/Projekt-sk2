@@ -2,6 +2,7 @@
 # Sieciowy Type-Rircer 
 ### Projekt-sk2
 Autorzy : Jakub Filipiak 151917, Tomasz Ławicki 151772, Dominik Maćkowiak
+
 strona serwerowa napisana w C++ uzywajac BSD Api
 
 client napisany w pythonie uzywajac PyGame
