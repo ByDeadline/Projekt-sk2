@@ -113,6 +113,7 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
             return LobbyHandler::HandleReady(requestData);
         case RequestType::GiveProgress:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for giving progres");
+            return LobbyHandler::HandleProgressUpdate(requestData);
     }
 
     Log::Write(std::to_string(requestData->clientId) + "Server did not recognise the request");

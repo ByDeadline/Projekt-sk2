@@ -24,6 +24,7 @@ private:
 
     int chosenText = 0;
     int wordCount = 0;
+    bool finished = false;
 
     void ChooseRandomText();
     void CalculateWordCount();
@@ -33,6 +34,9 @@ public:
 
     std::string GetText() { return this->randomTexts[this->chosenText]; }
     int GetWordCount() { return this->wordCount; }
+    int IsFinished() { return this->finished; }
+
+    void SetPlayerProgress(std::string userId, int progress);
 
     Game(std::list<Player> players);
 };

@@ -22,5 +22,5 @@ public:
     /// @brief A constructor that starts the TCP server connection
     TCPHandler();
 
-    static void SendWithFd(std::shared_ptr<ServerConnection> fd, std::shared_ptr<IRequestResult> requestResult);
+    static void SendWithFd(std::shared_ptr<ServerConnection> serverConnection, std::shared_ptr<IRequestResult> requestResult);
 };

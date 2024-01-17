@@ -71,10 +71,14 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                 auto requestData = RequestConverter::Convert(recivedText);
                 requestData->clientId = clientConnection->clientId;
                 auto requestResult = Server::ReciveRequest(requestData);
-                std::string textToSend = RequestConverter::Convert(requestResult);
-                write(fd, textToSend.c_str(), textToSend.size());
 
-                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                if (requestResult != nullptr)
+                {
+                    std::string textToSend = RequestConverter::Convert(requestResult);
+                    write(fd, textToSend.c_str(), textToSend.size());
+                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                }
+
             }
         }
         else

@@ -19,7 +19,8 @@ public:
         AlreadyInLobby,
         LobbyFull,
         LobbyNotFound,
-        NotInLobby
+        NotInLobby,
+        GameInProgress
     };
     ResultTypeEnum resultType;
 
@@ -65,7 +66,8 @@ private:
             { ResultTypeEnum::AlreadyInLobby, "failed,The user is already in lobby" },
             { ResultTypeEnum::LobbyFull, "failed,This lobby is full" },
             { ResultTypeEnum::LobbyNotFound, "failed,Lobby with this id does not exist" },
-            { ResultTypeEnum::NotInLobby, "failed,User is not in this lobby" }
+            { ResultTypeEnum::NotInLobby, "failed,User is not in this lobby" },
+            { ResultTypeEnum::GameInProgress, "failed,The game is already in progress" }
         };
     }
 };

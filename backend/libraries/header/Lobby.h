@@ -5,6 +5,7 @@
 
 #include "User.h"
 #include "Player.h"
+#include "Game.h"
 
 /// @brief Represents a lobby which players can create and join to
 class Lobby
@@ -17,7 +18,8 @@ public:
         UserAlreadyInLobby,
         LobbyFull,
         LobbyDoesNotExist,
-        UserNotInLobby
+        UserNotInLobby,
+        GameInProgress
     };
 
     /// @brief Maximum amount of users that can be in the lobby
@@ -28,6 +30,11 @@ public:
 
     /// @brief A list containig users that are in the lobby
     std::list<Player> lobbyUsers;
+
+    /// @brief A flag that determines whethere a game is in progress
+    bool gameInProgress = false;
+
+    std::shared_ptr<Game> game;
     
     /// @brief Constructor
     Lobby();
@@ -56,6 +63,8 @@ public:
     /// @param userId Unique id of the user
     /// @return The result of setting ready
     LobbyResult SetUserReady(std::string userId);
+
+    void StartGame();
 
     /// @brief Method checks if all users are set as ready
     /// @return True if user is ready, false otherwise

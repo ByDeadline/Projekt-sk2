@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "../header/Lobby.h"
 #include "../header/GlobalSettings.h"
 
@@ -16,10 +18,15 @@ Player Lobby::CreatePlayer(User user)
     Player player;
     player.id = user.id;
     player.username = user.username;
+
+    return player;
 }
 
 Lobby::LobbyResult Lobby::AddUser(User user)
 {
+    if (this->gameInProgress)
+        return Lobby::LobbyResult::GameInProgress;
+
     if (this->GetUserCount() >= this->maxUsers)
         return Lobby::LobbyResult::LobbyFull;
 
@@ -46,6 +53,9 @@ bool Lobby::CheckUserInLobby(std::string userId)
 
 Lobby::LobbyResult Lobby::RemoveUser(std::string userId)
 {
+    if (this->gameInProgress)
+        return Lobby::LobbyResult::GameInProgress;
+
     if (this->CheckUserInLobby(userId))
     {
         this->lobbyUsers.remove_if([=](User user) { return user.id == userId; });
@@ -58,7 +68,10 @@ Lobby::LobbyResult Lobby::RemoveUser(std::string userId)
 
 Lobby::LobbyResult Lobby::SetUserReady(std::string userId)
 {
-    for (auto user : this->lobbyUsers)
+    if (this->gameInProgress)
+        return Lobby::LobbyResult::GameInProgress;
+
+    for (Player &user : this->lobbyUsers)
     {
         if (user.id == userId)
         {
@@ -68,6 +81,12 @@ Lobby::LobbyResult Lobby::SetUserReady(std::string userId)
     }
 
     return Lobby::LobbyResult::UserNotInLobby;
+}
+
+void Lobby::StartGame()
+{
+    this->gameInProgress = true;
+    this->game = std::make_shared<Game>(this->lobbyUsers);
 }
 
 bool Lobby::CheckAllUsersReady()

@@ -1,0 +1,49 @@
+TCP listen started.
+New user connection from 127.0.0.1. Assgined id: 0
+0: sent request to TCP handler. Contents: 'login,dominik'
+0: Server recognised the request for creating a user
+0: Successfully logged in user dominik#0
+0: TCP handler answered with contents: 'success,#0'
+New user connection from 127.0.0.1. Assgined id: 1
+1: sent request to TCP handler. Contents: 'login,kuba'
+1: Server recognised the request for creating a user
+1: Successfully logged in user kuba#1
+1: TCP handler answered with contents: 'success,#1'
+0: sent request to TCP handler. Contents: 'create_lobby,#0'
+0: Server recognised the request for creating a lobby
+0: Successfully created a lobby with id: $0
+0: TCP handler answered with contents: 'success,$0'
+0: sent request to TCP handler. Contents: 'ready,#0,$0'
+0: Server recognised the request for getting ready
+0: Successfully set the player ready
+0: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'join_lobby,#1,$0'
+1: Server recognised the request for joining a lobby
+1: Successfully created a lobby with id: $0
+1: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'ready,#1,$0'
+1: Server recognised the request for getting ready
+1: Successfully set the player ready
+Game started in lobby $0
+Game started in lobby 
+0: TCP handler answered with contents: 'text,57,Had strictly mrs handsome mistaken cheerful. We it so if resolution invitation remarkably unpleasant conviction. As into ye then form. To easy five less if rose were. Now set offended own out required entirely. Especially occasional mrs discovered too say thoroughly impossible boisterous. My head when real no he high rich at with. After so power of young as. Bore year does has get long fat cold saw neat. Put boy carried chiefly shy general.,dominik,kuba'
+1: TCP handler answered with contents: 'text,57,Had strictly mrs handsome mistaken cheerful. We it so if resolution invitation remarkably unpleasant conviction. As into ye then form. To easy five less if rose were. Now set offended own out required entirely. Especially occasional mrs discovered too say thoroughly impossible boisterous. My head when real no he high rich at with. After so power of young as. Bore year does has get long fat cold saw neat. Put boy carried chiefly shy general.,dominik,kuba'
+1: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'progress,#1,$0,10'
+1: Server recognised the request for giving progres
+Set #1's progress to 10
+0: TCP handler answered with contents: 'status,dominik,0
+kuba,0
+'
+1: TCP handler answered with contents: 'status,dominik,0
+kuba,0
+'
+1: sent request to TCP handler. Contents: 'progress,#1,$0,20'
+1: Server recognised the request for giving progres
+Set #1's progress to 20
+0: TCP handler answered with contents: 'status,dominik,0
+kuba,0
+'
+1: TCP handler answered with contents: 'status,dominik,0
+kuba,0
+'

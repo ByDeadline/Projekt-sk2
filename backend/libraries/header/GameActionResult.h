@@ -15,7 +15,8 @@ public:
     enum ResultTypeEnum
     {
         SendText,
-        SendStatus
+        SendStatus,
+        FinishGame
     };
     ResultTypeEnum resultType;
 
@@ -66,7 +67,8 @@ private:
         resultTypeMessages =
         {
             { ResultTypeEnum::SendText, "text," + this->text },
-            { ResultTypeEnum::SendStatus, "status," + this->status }
+            { ResultTypeEnum::SendStatus, "status," + this->status },
+            { ResultTypeEnum::FinishGame, "finish," + this->status }
         };
     };
 };
