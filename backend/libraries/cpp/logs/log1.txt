@@ -1,0 +1,59 @@
+TCP listen started.
+New user connection from 127.0.0.1. Assgined id: 0
+0: sent request to TCP handler. Contents: 'login,dominik'
+0: Server recognised the request for creating a user
+0: Successfully logged in user dominik#0
+0: TCP handler answered with contents: 'success,#0'
+0: sent request to TCP handler. Contents: 'create_lobby,#0,$0'
+0: Server recognised the request for creating a lobby
+0: Successfully created a lobby with id: $0
+0: TCP handler answered with contents: 'success,$0'
+New user connection from 127.0.0.1. Assgined id: 1
+1: sent request to TCP handler. Contents: 'login,kuba'
+1: Server recognised the request for creating a user
+1: Successfully logged in user kuba#1
+1: TCP handler answered with contents: 'success,#1'
+1: sent request to TCP handler. Contents: 'join_lobby,#0,$0'
+1: Server recognised the request for joining a lobby
+1: This user is already in a lobby.
+1: TCP handler answered with contents: 'failed,The user is already in lobby'
+1: sent request to TCP handler. Contents: 'join_lobby,#1,$0'
+1: Server recognised the request for joining a lobby
+1: Successfully created a lobby with id: $0
+1: TCP handler answered with contents: 'success,$0'
+0: sent request to TCP handler. Contents: 'ready,#0,$0'
+0: Server recognised the request for getting ready
+0: Successfully set the player ready
+0: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'ready,$1,$0'
+1: Server recognised the request for getting ready
+1: User not logged in.
+1: TCP handler answered with contents: 'failed,Cannot create lobby because the user is not logged in'
+1: sent request to TCP handler. Contents: 'ready,#1,$0'
+1: Server recognised the request for getting ready
+1: Successfully set the player ready
+1: TCP handler answered with contents: 'success,$0'
+New user connection from 127.0.0.1. Assgined id: 2
+2: sent request to TCP handler. Contents: 'login,pyrea'
+2: Server recognised the request for creating a user
+2: Successfully logged in user pyrea#2
+2: TCP handler answered with contents: 'success,#2'
+2: sent request to TCP handler. Contents: 'join_lobby,#2,$0'
+2: Server recognised the request for joining a lobby
+2: Successfully created a lobby with id: $0
+2: TCP handler answered with contents: 'success,$0'
+2: sent request to TCP handler. Contents: 'ready,#2,$0'
+2: Server recognised the request for getting ready
+2: Successfully set the player ready
+2: TCP handler answered with contents: 'success,$0'
+New user connection from 127.0.0.1. Assgined id: 3
+3: sent request to TCP handler. Contents: 'login,pp'
+3: Server recognised the request for creating a user
+3: Successfully logged in user pp#3
+3: TCP handler answered with contents: 'success,#3'
+3: sent request to TCP handler. Contents: 'join_lobby,#3,$0'
+3: Server recognised the request for joining a lobby
+3: Successfully created a lobby with id: $0
+3: TCP handler answered with contents: 'success,$0'
+3: sent request to TCP handler. Contents: 'ready,#3,$0'
+3: Server recognised the request for getting ready
