@@ -14,7 +14,6 @@ COLOR_GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 logged_in = False
 timer = 100
-rooms = {}
 
 
 def wrap_string(string, max_width):
@@ -42,7 +41,6 @@ class ServerCommunication:
         return None
 
     def get_rooms(self,game):
-        # Possible statuses: Waiting, Playing
         rooms = {}
         if self.my_id == None:
             return rooms
@@ -50,27 +48,33 @@ class ServerCommunication:
 
         self.socket.send(msg.encode())
         response = self.socket.recv(1024).decode()
+
+        room_names = game.get_names_of_rooms()
         if "success" in response:
             response=response.replace('success,','')
 
             for room in response.split('\n'):
-                print(room)
                 if room != "":
                     rooms[room.split(',')[0]] = room.split(',')[1]
-                    game.create_room(room.split(',')[0])
-            print(rooms)
+                    if room.split(',')[0] not in room_names:
+                        game.create_room(room.split(',')[0])
             return rooms
-    def create_room(self):
+    def create_room(self,game,player):
         self.socket.send(("create_lobby,"+self.my_id+" ").encode())
         response = self.socket.recv(1024).decode()
         if "success" in response:
+            room = response.split(',')[1]
+            print("created room",room)
+            self.get_rooms(game)
+            game.get_room_by_name(room).add_player(player)
+            player.room = game.get_room_by_name(room)
             return True
         return False
     def send_join_room(self, room_name):
-        # self.socket.send(room_name.encode())
-        # response = self.socket.recv(1024).decode()
-        response = "OK"
-        if response == "OK":
+        self.socket.send(("join_lobby,"+self.my_id+","+room_name+" ").encode())
+        response = self.socket.recv(1024).decode()
+        if "success" in response:
+            print("joined room")
             return True
         return False
 
@@ -104,14 +108,19 @@ class ServerCommunication:
     def leave_room(self):
         # self.socket.send("leave_room".encode())
         return True
-    def player_ready(self):
-        # self.socket.send("player_ready".encode())
+    def player_ready(self, player):
+        print("player name",player.name,"room name",player.room.name)
+        self.socket.send(("ready,"+self.my_id+","+player.room.name+" ").encode())
         return True
     def player_unready(self):
         # self.socket.send("player_unready".encode())
         return True
     def send_word(self, word_length):
         # self.socket.send(("send_word " + word_length).encode())
+        return True
+    def listen_for_game_start(self):
+        self.socket.send("listen_for_game_start".encode())
+        response = self.socket.recv(1024).decode()
         return True
 
 class Room():
@@ -137,12 +146,12 @@ class Room():
         self.started = True
 
     def player_ready(self, player):
-        if player in self.ready_players:
+        if player.name in self.ready_players:
             if self.server.player_unready():
-                self.ready_players.remove(player)
+                self.ready_players.remove(player.name)
                 return False
-        if self.server.player_ready():
-            self.ready_players.append(player)
+        if self.server.player_ready(player):
+            self.ready_players.append(player.name)
         return True
 
     def player_unready(self, player):
@@ -158,14 +167,17 @@ class Player():
         self.room = room
         self.server = server_communication
         self.my_id = None
+        self.logged_in = False
+        self.ready = False
 
     def join_room(self, room):
         if room.started:
             return False
         if room.player_count >= 4:
             return False
-        self.room = room
-        room.add_player(self)
+        if self.server.send_join_room(room.name):
+            self.room = room
+            room.add_player(self)
         return True
 
     def set_name(self, name):
@@ -203,6 +215,16 @@ class Game():
 
     def get_rooms(self):
         return self.rooms
+    def get_names_of_rooms(self):
+        names = []
+        for room in self.rooms:
+            names.append(room.name)
+        return names
+    def get_room_by_name(self, name):
+        for room in self.rooms:
+            if room.name == name:
+                return room
+        return None
 
 
 class InputBox:
@@ -292,7 +314,10 @@ def draw_room_list(screen, game, player,server,rooms):
     textRect.center = (SCREEN_WIDTH - 80, SCREEN_HEIGHT - 25)
     screen.blit(text, textRect)
 
-
+    #hack
+    if isinstance(rooms, dict):
+        global rooms_copy
+        rooms_copy = rooms.copy()
 
     font = pygame.font.Font(None, 32)
     name_surface = font.render(''.join(player.name), True, (0, 0, 0))
@@ -301,15 +326,24 @@ def draw_room_list(screen, game, player,server,rooms):
     for room in rooms:
         pygame.draw.rect(screen, COLOR_GREY, (10,top_margin + record_height * i, record_width, record_height), 2, 3)
         font = pygame.font.Font('freesansbold.ttf', font_size)
-        print(room)
-        text = font.render(room, True, COLOR_DARK_BLUE)
-        textRect = text.get_rect()
-        textRect.center = (50, text_margin + top_margin + record_height * i)
-        screen.blit(text, textRect)
-        text = font.render(str(rooms[room]) + "/4", True, COLOR_DARK_BLUE)
-        textRect = text.get_rect()
-        textRect.center = (record_width - 30, 75 + record_height * i)
-        screen.blit(text, textRect)
+        try:
+            text = font.render(room, True, COLOR_DARK_BLUE)
+            textRect = text.get_rect()
+            textRect.center = (50, text_margin + top_margin + record_height * i)
+            screen.blit(text, textRect)
+            text = font.render(str(rooms[room]) + "/4", True, COLOR_DARK_BLUE)
+            textRect = text.get_rect()
+            textRect.center = (record_width - 30, 75 + record_height * i)
+            screen.blit(text, textRect)
+        except:
+            text = font.render(room.name, True, COLOR_DARK_BLUE)
+            textRect = text.get_rect()
+            textRect.center = (50, text_margin + top_margin + record_height * i)
+            screen.blit(text, textRect)
+            text = font.render(str(rooms_copy[room.name]) + "/4", True, COLOR_DARK_BLUE)
+            textRect = text.get_rect()
+            textRect.center = (record_width - 30, 75 + record_height * i)
+            screen.blit(text, textRect)
         i+=1
 
 
@@ -351,7 +385,7 @@ def draw_room(screen, room):
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, text_margin + top_margin + record_height * i)
         screen.blit(text, textRect)
-
+        print(player,room.ready_players)
         if player in room.ready_players:
             screen.blit(green_check, (SCREEN_WIDTH - 50, text_margin + top_margin + record_height * i - 15))
         else:
@@ -368,7 +402,6 @@ def draw_room(screen, room):
 
 def draw_game(screen, game, server,cars,input_box,game_string):
 
-
     font_size = 20
     left_margin = 50
     top_margin = 100
@@ -377,7 +410,6 @@ def draw_game(screen, game, server,cars,input_box,game_string):
     screen.blit(cars[1], (left_margin, top_margin + car_margin))
     screen.blit(cars[2], (left_margin, top_margin + car_margin * 2))
     screen.blit(cars[3], (left_margin, top_margin + car_margin * 3))
-
 
     font = pygame.font.Font('freesansbold.ttf', font_size)
     wrapped_string = wrap_string(game_string, 70)
@@ -416,7 +448,7 @@ def main(logged_in=False):
         exit()
     game = Game(server)
     player = Player("", server)
-    rooms = {}
+    rooms_to_show = {}
 
 
     blue_car = pygame.image.load("blue_car.png")
@@ -452,21 +484,21 @@ def main(logged_in=False):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         mouse_pos = event.pos
-                        rooms = game.get_rooms()
-                        print(rooms)
-                        for i in range(len(rooms)):
-                            room = rooms[i]
+                        rooms_to_show = game.get_rooms()
+                        print(rooms_to_show)
+                        for i in range(len(rooms_to_show)):
+                            room = rooms_to_show[i]
                             if 10 < mouse_pos[0] < SCREEN_WIDTH - 10 and 50 + 40 * i < mouse_pos[1] < 90 + 40 * i:
                                 if player.join_room(room):
                                     game_string = server.get_game_string(room.name)
                                     logged_in = True
-
                                     break
-                                rooms = server.get_rooms(game)
+                                print("didnt join room")
+                                rooms_to_show = server.get_rooms(game)
 
                         if SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 40 < mouse_pos[1] < SCREEN_HEIGHT - 10:
-                            if server.create_room():
-                                rooms = server.get_rooms(game)
+                            if server.create_room(game,player):
+                                rooms_to_show = server.get_rooms(game)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         logged_in = False
@@ -479,6 +511,7 @@ def main(logged_in=False):
                 if not player.room.started:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
+                            rooms_to_show = server.get_rooms(game)
                             player.room.remove_player(player)
                             player.room = None
                             break
@@ -487,16 +520,18 @@ def main(logged_in=False):
                             mouse_pos = event.pos
                             print(mouse_pos)
                             if SCREEN_WIDTH // 2 - 45 < mouse_pos[0] < SCREEN_WIDTH // 2 + 45 and SCREEN_HEIGHT - 100 < mouse_pos[1] < SCREEN_HEIGHT - 70:
-                                if player.room.player_ready(player.name):
+                                if player.room.player_ready(player):
+
                                     print("ready")
                                 else:
-                                    player.room.player_unready(player.name)
+                                    player.room.player_unready(player)
                                     print("unready")
 
                 # Handle game events
                 else:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
+                            rooms_to_show = server.get_rooms(game)
                             player.room.remove_player(player)
                             player.room = None
                             break
@@ -516,12 +551,12 @@ def main(logged_in=False):
         if not logged_in:
             draw_player_name_input(screen, input_box_name)
             if player.name != "":
-                rooms = server.get_rooms(game)
+                rooms_to_show = server.get_rooms(game)
                 logged_in = True
 
         # Draw room list
         elif player.room == None:
-            draw_room_list(screen, game,player,server,rooms)
+            draw_room_list(screen, game,player,server,rooms_to_show)
 
         # Draw room and game
         elif player.room != None:
