@@ -1,4 +1,0 @@
-logPath="./logs"
-writeToFile=true
-writeToConsole=true
-ServerPort=1234
