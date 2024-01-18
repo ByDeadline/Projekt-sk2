@@ -55,15 +55,24 @@ std::shared_ptr<Lobby> LobbyHandler::GetLobbyById(std::string lobbyId)
     return nullptr;
 }
 
-bool LobbyHandler::CheckUserInAnyLobby(std::string userId)
+std::shared_ptr<Lobby> LobbyHandler::CheckUserInAnyLobby(std::string userId)
 {
     for (auto lobby : LobbyHandler::lobbies)
     {
         if (lobby->CheckUserInLobby(userId))
-            return true;
+            return lobby;
     }
 
-    return false;
+    return nullptr;
+}
+
+void LobbyHandler::RemoveUserFromLobby(std::string userId)
+{
+    auto lobby = LobbyHandler::CheckUserInAnyLobby(userId);
+    if (lobby != nullptr)
+    {
+        lobby->RemoveUser(userId, true);
+    }
 }
 
 std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IRequestData> requestData)
@@ -75,7 +84,7 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IR
 
     if (user != nullptr)
     {
-        if (!LobbyHandler::CheckUserInAnyLobby(lobbyData->userId))
+        if (LobbyHandler::CheckUserInAnyLobby(lobbyData->userId) == nullptr)
         {
             auto lobby = LobbyHandler::GetLobbyById(lobbyData->lobbyId);
             auto joinResult = LobbyHandler::JoinLobby(lobbyData->userId, lobbyData->lobbyId);
@@ -156,7 +165,7 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleCreateLobby(std::shared_ptr<
 
     if (user != nullptr)
     {
-        if (!LobbyHandler::CheckUserInAnyLobby(lobbyData->userId))
+        if (LobbyHandler::CheckUserInAnyLobby(lobbyData->userId) == nullptr)
         {
             auto lobbyId = LobbyHandler::CreateLobby();
             lobbyData->lobbyId = lobbyId;

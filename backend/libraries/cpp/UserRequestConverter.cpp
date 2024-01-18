@@ -31,6 +31,12 @@ std::shared_ptr<IRequestData> UserRequestConverter::Convert(std::list<std::strin
             continue;
         }
 
+        if (item == "alive")
+        {
+            userData->SetRequestType(RequestType::Alive);
+            continue;
+        }
+
         userData->username = item;
     }
 

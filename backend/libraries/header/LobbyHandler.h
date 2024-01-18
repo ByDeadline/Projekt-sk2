@@ -43,8 +43,12 @@ public:
     
     /// @brief Checks whether the selected user is in any lobby
     /// @param userId Id of the user to be checked
-    /// @return True if the user is in some lobby, false otherwise
-    static bool CheckUserInAnyLobby(std::string userId);
+    /// @return Pointer to the lobby the user is in, nullptr otherwise
+    static std::shared_ptr<Lobby> CheckUserInAnyLobby(std::string userId);
+
+    /// @brief Removes the user from the lobby if he is in any
+    /// @param userId Id of the user
+    static void RemoveUserFromLobby(std::string userId);
 
     /// @brief Starts the game with the players in the lobby. MUST BE CALLED ASYNC
     /// @param lobbyId Id of the lobby to start the game in

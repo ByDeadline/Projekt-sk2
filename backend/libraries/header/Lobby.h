@@ -39,6 +39,8 @@ public:
     /// @brief Constructor
     Lobby();
 
+    void SendLobbyStatus();
+
     /// @brief Creates a player based on user
     /// @param user A user on which to base the player
     /// @return  A player object based on the user
@@ -56,8 +58,9 @@ public:
 
     /// @brief Removes the user from this lobby
     /// @param userId Unique id of the user
+    /// @param forceRemove Decides to remove user even though he is in a game
     /// @return The result of removing
-    LobbyResult RemoveUser(std::string userId);
+    LobbyResult RemoveUser(std::string userId, bool forceRemove = false);
 
     /// @brief Sets the selected user as ready
     /// @param userId Unique id of the user

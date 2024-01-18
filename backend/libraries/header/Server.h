@@ -27,6 +27,12 @@ public:
 
     static std::shared_ptr<ServerConnection> GetServerConnectionByUserId(std::string userId);
 
+    static std::shared_ptr<ServerConnection> GetServerConnectionByClientId(int clientId);
+
+    static void DisconnectClient(int clientId);
+
+    static void RemoveServerConnection(int clientId);
+
     /// @brief Finds a user based on client's connection id
     /// @param clientId Client's connection id
     /// @return Pointer to a user or nullptr if not found
@@ -34,7 +40,7 @@ public:
 
     /// @brief Removes the user from connections. However it does not disconnect the client
     /// @param clientId Client's connection id
-    static void RemoveUserById(int clientId);
+    static void RemoveUserByUserId(std::string userId);
 
     /// @brief Adds a new server connection
     /// @param clientAddress Address of the client

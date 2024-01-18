@@ -15,7 +15,8 @@ public:
         Success,
         UsernameAlreadyExists,
         ClientAlreadyLoggedIn,
-        WrongIdOrNotLoggedIn
+        WrongIdOrNotLoggedIn,
+        AliveOk
     };
     ResultTypeEnum resultType;
 
@@ -43,7 +44,8 @@ private:
             { ResultTypeEnum::Success, "success," + this->uniqueCode },
             { ResultTypeEnum::UsernameAlreadyExists, "failed,A user with the same nickname already exists" },
             { ResultTypeEnum::ClientAlreadyLoggedIn, "failed,Client is already logged in" },
-            { ResultTypeEnum::WrongIdOrNotLoggedIn, "failed,Given Id is incorrect or the user is not logged in" }
+            { ResultTypeEnum::WrongIdOrNotLoggedIn, "failed,Given Id is incorrect or the user is not logged in" },
+            { ResultTypeEnum::AliveOk, "ok" }
         };
     };
 };

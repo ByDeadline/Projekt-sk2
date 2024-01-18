@@ -28,6 +28,33 @@ std::shared_ptr<ServerConnection> Server::GetServerConnectionByUserId(std::strin
     return nullptr;
 }
 
+std::shared_ptr<ServerConnection> Server::GetServerConnectionByClientId(int clientId)
+{
+    for (auto connection : Server::serverConnections)
+    {
+        if (connection->clientId == clientId)
+            return connection;
+    }
+
+    return nullptr;
+}
+
+void Server::DisconnectClient(int clientId)
+{
+    auto connection = Server::GetServerConnectionByClientId(clientId);
+    if (connection != nullptr)
+    {
+        if (connection->user != nullptr)
+            UserHandler::RemoveUser(connection->user->id);
+    }
+    connection->connected = false;
+}
+
+void Server::RemoveServerConnection(int clientId)
+{
+    Server::serverConnections.remove_if([=](std::shared_ptr<ServerConnection> serverConnection) { return serverConnection->clientId == clientId; });
+}
+
 std::shared_ptr<User> Server::GetUserById(int clientId)
 {
     for (auto connection : Server::serverConnections)
@@ -39,11 +66,11 @@ std::shared_ptr<User> Server::GetUserById(int clientId)
     return nullptr;
 }
 
-void Server::RemoveUserById(int clientId)
+void Server::RemoveUserByUserId(std::string userId)
 {
     for (auto connection : Server::serverConnections)
     {
-        if (connection->clientId == clientId)
+        if (connection->user != nullptr && connection->user->id == userId)
             return connection->user.reset();
     }
 }
@@ -114,6 +141,9 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::GiveProgress:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for giving progres");
             return LobbyHandler::HandleProgressUpdate(requestData);
+        case RequestType::Alive:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for informing of being alive");
+            return UserHandler::HandleAlive(requestData);
     }
 
     Log::Write(std::to_string(requestData->clientId) + "Server did not recognise the request");

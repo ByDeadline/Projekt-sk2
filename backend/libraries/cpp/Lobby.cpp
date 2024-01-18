@@ -1,11 +1,27 @@
 #include <memory>
+#include <map>
 
 #include "../header/Lobby.h"
 #include "../header/GlobalSettings.h"
+#include "../header/LobbyActionResult.h"
+#include "../header/Server.h"
 
 Lobby::Lobby()
 {
     this->maxUsers = GlobalSettings::LobbyMaxUsers;
+}
+
+void Lobby::SendLobbyStatus()
+{
+    auto lobbyActionResult = std::make_shared<LobbyActionResult>();
+    std::map<std::string, bool> usersInfo;
+
+    for (auto user : this->lobbyUsers)
+        usersInfo.insert({user.username, user.isReady});
+    
+    lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::LobbyStatus;
+    lobbyActionResult->setLobbyStatus(usersInfo);
+    Server::Send(this->lobbyUsers, lobbyActionResult);
 }
 
 int Lobby::GetUserCount()
@@ -37,6 +53,7 @@ Lobby::LobbyResult Lobby::AddUser(User user)
     }
 
     this->lobbyUsers.push_back(CreatePlayer(user));
+    this->SendLobbyStatus();
     return Lobby::LobbyResult::Success2;
 }
 
@@ -51,15 +68,16 @@ bool Lobby::CheckUserInLobby(std::string userId)
     return false;
 }
 
-Lobby::LobbyResult Lobby::RemoveUser(std::string userId)
+Lobby::LobbyResult Lobby::RemoveUser(std::string userId, bool forceRemove)
 {
-    if (this->gameInProgress)
+    if (this->gameInProgress && !forceRemove)
         return Lobby::LobbyResult::GameInProgress;
 
     if (this->CheckUserInLobby(userId))
     {
         this->lobbyUsers.remove_if([=](User user) { return user.id == userId; });
-        
+        this->SendLobbyStatus();
+
         return Lobby::LobbyResult::Success2;
     }
 
@@ -76,6 +94,8 @@ Lobby::LobbyResult Lobby::SetUserReady(std::string userId)
         if (user.id == userId)
         {
             user.isReady = true;
+            this->SendLobbyStatus();
+
             return Lobby::LobbyResult::Success2;
         }
     }

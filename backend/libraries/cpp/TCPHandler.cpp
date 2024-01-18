@@ -55,11 +55,13 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     clientPoll.fd = fd;
     clientPoll.events = POLLIN;
 
+    bool noResponse = false;
     while (clientConnection->connected)
     {
         poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
         if (clientPoll.revents & POLLIN)
         {
+            noResponse = false;
             char data[GlobalSettings::TCPMaxCharReadLength];
             int len = read(fd, data, sizeof(data) - 1);
             if (len > 0)
@@ -78,14 +80,32 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                     write(fd, textToSend.c_str(), textToSend.size());
                     Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
                 }
-
             }
         }
         else
         {
+            if (noResponse)
+            {
+                std::string textToSend = "failed,No response - disconnecting";
+                write(fd, textToSend.c_str(), textToSend.size());
+                Server::DisconnectClient(clientConnection->clientId);
+                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+            }
+            else
+            {
+                std::string textToSend = "alive?";
+                write(fd, textToSend.c_str(), textToSend.size());
+                noResponse = true;
+                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+            }
+
             // klient nic nie robił przez 30s, sprawdźmy czy żyje.
         }
     }
+
+    Server::RemoveServerConnection(clientConnection->clientId);
+    shutdown(fd, SHUT_RDWR);
+    close(fd);
 }
 
 void TCPHandler::SendWithFd(std::shared_ptr<ServerConnection> serverConnection, std::shared_ptr<IRequestResult> requestResult)

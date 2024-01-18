@@ -39,7 +39,7 @@ public:
     /// @brief Removes the user with the specifed unique user's id
     /// @param userId User's unique id
     /// @param clientId Client's connection unique id
-    static void RemoveUser(std::string userId, int clientId);
+    static void RemoveUser(std::string userId);
 
     /// @brief Handles the request for logging in
     /// @param requestData Data sent by the client
@@ -50,4 +50,6 @@ public:
     /// @param requestData Data sent by the client
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleLogout(std::shared_ptr<IRequestData> requestData);
+
+    static std::shared_ptr<IRequestResult> HandleAlive(std::shared_ptr<IRequestData> requestData);
 };
