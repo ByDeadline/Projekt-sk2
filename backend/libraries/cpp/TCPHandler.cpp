@@ -7,6 +7,7 @@
 #include <thread>
 #include <poll.h>
 #include <memory>
+#include <signal.h>
 
 #include "../header/TCPHandler.h"
 #include "../header/GlobalSettings.h"
@@ -55,54 +56,62 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     clientPoll.fd = fd;
     clientPoll.events = POLLIN;
 
+    signal(SIGPIPE, SIG_IGN);
     bool noResponse = false;
     int uselessRequest = 0;
     while (clientConnection->connected)
     {
-        poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
-        if ((clientPoll.revents & POLLIN) && uselessRequest <= GlobalSettings::UselessRequestLimit)
+        try
         {
-            noResponse = false;
-            char data[GlobalSettings::TCPMaxCharReadLength];
-            int len = read(fd, data, sizeof(data) - 1);
-            if (len > 0)
+            poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
+            if ((clientPoll.revents & POLLIN) && uselessRequest <= GlobalSettings::UselessRequestLimit)
             {
-                uselessRequest = 0;
-                std::string recivedText(data, len - 1);
-
-                Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
-
-                auto requestData = RequestConverter::Convert(recivedText);
-                requestData->clientId = clientConnection->clientId;
-                auto requestResult = Server::ReciveRequest(requestData);
-
-                if (requestResult != nullptr)
+                noResponse = false;
+                char data[GlobalSettings::TCPMaxCharReadLength];
+                int len = read(fd, data, sizeof(data) - 1);
+                if (len > 0)
                 {
-                    std::string textToSend = RequestConverter::Convert(requestResult);
-                    write(fd, textToSend.c_str(), textToSend.size());
-                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
-                }
-            }
+                    uselessRequest = 0;
+                    std::string recivedText(data, len - 1);
 
-            uselessRequest++;
-        }
-        else
-        {
-            if (noResponse)
-            {
-                std::string textToSend = "failed,No response - disconnecting";
-                write(fd, textToSend.c_str(), textToSend.size());
-                Server::DisconnectClient(clientConnection->clientId);
-                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                    Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
+
+                    auto requestData = RequestConverter::Convert(recivedText);
+                    requestData->clientId = clientConnection->clientId;
+                    auto requestResult = Server::ReciveRequest(requestData);
+
+                    if (requestResult != nullptr)
+                    {
+                        std::string textToSend = RequestConverter::Convert(requestResult);
+                        write(fd, textToSend.c_str(), textToSend.size());
+                        Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                    }
+                }
+
+                uselessRequest++;
             }
             else
             {
-                std::string textToSend = "alive?";
-                write(fd, textToSend.c_str(), textToSend.size());
-                noResponse = true;
-                uselessRequest = 0;
-                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                if (noResponse)
+                {
+                    std::string textToSend = "failed,No response - disconnecting";
+                    write(fd, textToSend.c_str(), textToSend.size());
+                    Server::DisconnectClient(clientConnection->clientId);
+                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                }
+                else
+                {
+                    std::string textToSend = "alive?";
+                    write(fd, textToSend.c_str(), textToSend.size());
+                    noResponse = true;
+                    uselessRequest = 0;
+                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                }
             }
+        }
+        catch(...)
+        {
+            Log::Write(std::to_string(clientConnection->clientId) + ": Pipe broken");
         }
     }
 
