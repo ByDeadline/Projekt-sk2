@@ -23,4 +23,7 @@ public:
   
     /// @brief Max users that can be in one lobby
     static const int LobbyMaxUsers = 4;
+
+    /// @brief Amount of empty requests that can be tolerated
+    static const int UselessRequestLimit = 10;
 };
