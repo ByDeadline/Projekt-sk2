@@ -56,16 +56,18 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     clientPoll.events = POLLIN;
 
     bool noResponse = false;
+    int uselessRequest = 0;
     while (clientConnection->connected)
     {
         poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
-        if (clientPoll.revents & POLLIN)
+        if ((clientPoll.revents & POLLIN) && uselessRequest <= GlobalSettings::UselessRequestLimit)
         {
             noResponse = false;
             char data[GlobalSettings::TCPMaxCharReadLength];
             int len = read(fd, data, sizeof(data) - 1);
             if (len > 0)
             {
+                uselessRequest = 0;
                 std::string recivedText(data, len - 1);
 
                 Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
@@ -81,6 +83,8 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                     Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
                 }
             }
+
+            uselessRequest++;
         }
         else
         {
@@ -96,10 +100,9 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                 std::string textToSend = "alive?";
                 write(fd, textToSend.c_str(), textToSend.size());
                 noResponse = true;
+                uselessRequest = 0;
                 Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
             }
-
-            // klient nic nie robił przez 30s, sprawdźmy czy żyje.
         }
     }
 
