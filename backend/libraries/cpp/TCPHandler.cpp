@@ -104,7 +104,6 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                     std::string textToSend = "alive?";
                     write(fd, textToSend.c_str(), textToSend.size());
                     noResponse = true;
-                    uselessRequest = 0;
                     Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
                 }
             }
