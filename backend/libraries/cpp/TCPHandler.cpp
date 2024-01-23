@@ -58,7 +58,6 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
 
     signal(SIGPIPE, SIG_IGN);
     bool noResponse = false;
-    int uselessRequest = 0;
     while (clientConnection->connected)
     {
         try
@@ -66,9 +65,6 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
             poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
             if ((clientPoll.revents & POLLIN))
             {
-                if (uselessRequest > GlobalSettings::UselessRequestLimit)
-                    throw "Useless requests";
-
                 noResponse = false;
                 char data[GlobalSettings::TCPMaxCharReadLength];
                 int len = read(fd, data, sizeof(data) - 1);
@@ -87,11 +83,8 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                         std::string textToSend = RequestConverter::Convert(requestResult);
                         write(fd, textToSend.c_str(), textToSend.size());
                         Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
-                        uselessRequest = 0;
                     }
                 }
-
-                uselessRequest++;
             }
             else
             {
@@ -104,7 +97,6 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                 }
                 else
                 {
-                    uselessRequest = 0;
                     noResponse = true;
                     Log::Write(std::to_string(clientConnection->clientId) + ": User is inactive for too long");
                 }

@@ -75,6 +75,11 @@ void LobbyHandler::RemoveUserFromLobby(std::string userId)
     }
 }
 
+void LobbyHandler::RemoveLobby(std::string lobbyId)
+{
+    LobbyHandler::lobbies.remove_if([=](std::shared_ptr<Lobby> lobby) { return lobby->lobbyId == lobbyId; });
+}
+
 std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IRequestData> requestData)
 {
     auto lobbyData = std::make_shared<LobbyData>(*dynamic_cast<LobbyData*>(requestData.get()));
@@ -213,6 +218,7 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleProgressUpdate(std::shared_p
                 gameActionResult->resultType = GameActionResult::ResultTypeEnum::FinishGame;
                 Log::Write("Game in lobby " + lobbyData->lobbyId + " finished");
                 Server::Send(lobby->game->players, gameActionResult);
+                LobbyHandler::RemoveLobby(lobby->lobbyId);
             }
             else
             {

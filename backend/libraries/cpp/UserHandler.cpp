@@ -38,11 +38,12 @@ std::shared_ptr<User> UserHandler::GetUserByUserId(std::string userId)
     return nullptr;
 }
 
-std::string UserHandler::AddUser(std::string username, int clientId)
+std::string UserHandler::AddUser(std::string username, int clientId, bool isAdmin)
 {
     auto user = std::make_shared<User>();
     user->username = username;
     user->id = "#" + std::to_string(UserHandler::idCounter++);
+    user->admin = isAdmin;
     UserHandler::users.push_back(user);
     Server::AddUserToConnection(clientId, user);
 
@@ -72,7 +73,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IReques
 
     if (UserHandler::GetUserByUsername(userData->username) == nullptr)
     {
-        std::string userId = UserHandler::AddUser(userData->username, userData->clientId);
+        std::string userId = UserHandler::AddUser(userData->username, userData->clientId, userData->admin);
         userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
         userActionResult->setUniqueCode(userId);
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged in user " + userData->username + userId);
@@ -90,7 +91,7 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
     auto userActionResult = std::make_shared<UserActionResult>();
 
-    auto user = UserHandler::GetUserByUserId(userData->username);
+    auto user = UserHandler::GetUserByUserId(userData->userId);
     if (user != nullptr)
     {
         UserHandler::RemoveUser(user->id);
@@ -98,6 +99,31 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
         userActionResult->setUniqueCode(userData->username);
 
         Log::Write(std::to_string(userData->clientId) + ": Successfully logged out user " + userData->username);
+        return userActionResult;
+    }
+
+    Log::Write(std::to_string(userData->clientId) + ": error: User already logged in or wrong id provided");
+    userActionResult->resultType = UserActionResult::ResultTypeEnum::WrongIdOrNotLoggedIn;
+    return userActionResult;
+}
+
+std::shared_ptr<IRequestResult> UserHandler::HandleRemoveUser(std::shared_ptr<IRequestData> requestData)
+{
+    auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
+    auto userActionResult = std::make_shared<UserActionResult>();
+
+    auto user = UserHandler::GetUserByUserId(userData->userId);
+    if (user != nullptr)
+    {
+        if (user->admin)
+        {
+            UserHandler::RemoveUser(userData->userToDelete);
+            userActionResult->resultType = UserActionResult::ResultTypeEnum::Success;
+            userActionResult->setUniqueCode(userData->userToDelete);
+            return userActionResult;
+        }
+
+        userActionResult->resultType = UserActionResult::ResultTypeEnum::NoPrivilages;
         return userActionResult;
     }
 

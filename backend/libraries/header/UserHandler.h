@@ -33,8 +33,9 @@ public:
     /// @brief Creates and adds a new user with the selected username
     /// @param username Desired username
     /// @param clientId Id of client' connection
+    /// @param isAdmin Is the user supposed to an admin 
     /// @return Created user's unique id
-    static std::string AddUser(std::string username, int clientId);
+    static std::string AddUser(std::string username, int clientId, bool isAdmin);
 
     /// @brief Removes the user with the specifed unique user's id
     /// @param userId User's unique id
@@ -50,6 +51,11 @@ public:
     /// @param requestData Data sent by the client
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleLogout(std::shared_ptr<IRequestData> requestData);
+
+    /// @brief Handles the request for removing a selected user by force. Only admin can do that
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
+    static std::shared_ptr<IRequestResult> HandleRemoveUser(std::shared_ptr<IRequestData> requestData);
 
     static std::shared_ptr<IRequestResult> HandleAlive(std::shared_ptr<IRequestData> requestData);
 };

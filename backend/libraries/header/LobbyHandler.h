@@ -50,6 +50,10 @@ public:
     /// @param userId Id of the user
     static void RemoveUserFromLobby(std::string userId);
 
+    /// @brief Removes the selected lobby with the game if it is in progress
+    /// @param lobbyId Id of the lobby to be deleted
+    static void RemoveLobby(std::string lobbyId);
+
     /// @brief Starts the game with the players in the lobby. MUST BE CALLED ASYNC
     /// @param lobbyId Id of the lobby to start the game in
     static void AsyncStartGame(std::string lobbyId);

@@ -123,6 +123,9 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::UserLogout:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for loging out");
             return UserHandler::HandleLogout(requestData);
+        case RequestType::RemoveUser:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for removing a user");
+            return UserHandler::HandleRemoveUser(requestData);
         case RequestType::CreateLobby:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for creating a lobby");
             return LobbyHandler::HandleCreateLobby(requestData);

@@ -16,7 +16,8 @@ public:
         UsernameAlreadyExists,
         ClientAlreadyLoggedIn,
         WrongIdOrNotLoggedIn,
-        AliveOk
+        AliveOk,
+        NoPrivilages
     };
     ResultTypeEnum resultType;
 
@@ -45,7 +46,8 @@ private:
             { ResultTypeEnum::UsernameAlreadyExists, "failed,A user with the same nickname already exists" },
             { ResultTypeEnum::ClientAlreadyLoggedIn, "failed,Client is already logged in" },
             { ResultTypeEnum::WrongIdOrNotLoggedIn, "failed,Given Id is incorrect or the user is not logged in" },
-            { ResultTypeEnum::AliveOk, "ok" }
+            { ResultTypeEnum::AliveOk, "ok" },
+            { ResultTypeEnum::NoPrivilages, "failed,No privilages" }
         };
     };
 };
