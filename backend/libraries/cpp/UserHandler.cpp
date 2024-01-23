@@ -108,9 +108,5 @@ std::shared_ptr<IRequestResult> UserHandler::HandleLogout(std::shared_ptr<IReque
 
 std::shared_ptr<IRequestResult> UserHandler::HandleAlive(std::shared_ptr<IRequestData> requestData)
 {
-    auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
-    auto userActionResult = std::make_shared<UserActionResult>();
-
-    userActionResult->resultType = UserActionResult::ResultTypeEnum::AliveOk;
-    return userActionResult;
+    return nullptr;
 }

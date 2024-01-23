@@ -64,14 +64,16 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
         try
         {
             poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
-            if ((clientPoll.revents & POLLIN) && uselessRequest <= GlobalSettings::UselessRequestLimit)
+            if ((clientPoll.revents & POLLIN))
             {
+                if (uselessRequest > GlobalSettings::UselessRequestLimit)
+                    throw "Useless requests";
+
                 noResponse = false;
                 char data[GlobalSettings::TCPMaxCharReadLength];
                 int len = read(fd, data, sizeof(data) - 1);
                 if (len > 0)
                 {
-                    uselessRequest = 0;
                     std::string recivedText(data, len - 1);
 
                     Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
@@ -85,6 +87,7 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                         std::string textToSend = RequestConverter::Convert(requestResult);
                         write(fd, textToSend.c_str(), textToSend.size());
                         Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                        uselessRequest = 0;
                     }
                 }
 
@@ -101,16 +104,16 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
                 }
                 else
                 {
-                    std::string textToSend = "alive?";
-                    write(fd, textToSend.c_str(), textToSend.size());
+                    uselessRequest = 0;
                     noResponse = true;
-                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                    Log::Write(std::to_string(clientConnection->clientId) + ": User is inactive for too long");
                 }
             }
         }
-        catch(...)
+        catch (const std::string &exc)
         {
-            Log::Write(std::to_string(clientConnection->clientId) + ": Pipe broken");
+            Log::Write(std::to_string(clientConnection->clientId) + exc);
+            Server::DisconnectClient(clientConnection->clientId);
         }
     }
 
