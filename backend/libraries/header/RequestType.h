@@ -7,6 +7,7 @@ enum RequestType
     AdminLogin,
     UserLogout,
     RemoveUser,
+    ShowUsers,
     CreateLobby,
     ShowLobbies,
     JoinLobby,

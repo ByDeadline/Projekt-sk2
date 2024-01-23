@@ -19,12 +19,14 @@ std::shared_ptr<IRequestData> UserRequestConverter::Convert(std::list<std::strin
     {
         if (item == "login" && !requestFound)
         {
+            requestFound = true;
             userData->SetRequestType(RequestType::UserLogin);
             continue;
         }
 
         if (item == "admin" && !requestFound)
         {
+            requestFound = true;
             userData->SetRequestType(RequestType::UserLogin);
             userData->admin = true;
             continue;
@@ -32,14 +34,24 @@ std::shared_ptr<IRequestData> UserRequestConverter::Convert(std::list<std::strin
         
         if (item == "remove_user" && !requestFound)
         {
+            requestFound = true;
             get2 = true;
             get3 = true;
             userData->SetRequestType(RequestType::RemoveUser);
             continue;
         }
 
+        if (item == "show_users" && !requestFound)
+        {
+            requestFound = true;
+            get2 = true;
+            userData->SetRequestType(RequestType::ShowUsers);
+            continue;
+        }
+
         if (item == "logout" && !requestFound)
         {
+            requestFound = true;
             get2 = true;
             userData->SetRequestType(RequestType::UserLogout);
             continue;
@@ -47,6 +59,7 @@ std::shared_ptr<IRequestData> UserRequestConverter::Convert(std::list<std::strin
 
         if (item == "alive" && !requestFound)
         {
+            requestFound = true;
             userData->SetRequestType(RequestType::Alive);
             continue;
         }
