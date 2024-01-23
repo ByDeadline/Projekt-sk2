@@ -121,12 +121,6 @@ class ServerCommunication:
             # Set the socket back to blocking mode
             fcntl.fcntl(self.socket, fcntl.F_SETFL, 0)
 
-    # def get_game_string(self, room_name):
-        # self.socket.send("get_game_string".encode())
-        # game_string = self.socket.recv(1024).decode()
-     #   game_string = "Lorem ipsum dolor sit amet. Id debitis ipsa vel commodi quos est aliquam sunt. Non omnis animi aut Quis neque et rerum numquam ut facilis doloribus eum suscipit rerum ut quia quia aut eaque adipisci."
-      #  return game_string
-
     def send_letter(self, letter):
         # self.socket.send(letter.encode())
 
