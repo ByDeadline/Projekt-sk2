@@ -41,6 +41,13 @@ public:
     /// @param userId User's unique id
     /// @param clientId Client's connection unique id
     static void RemoveUser(std::string userId);
+    
+    static std::list<UserActionResult::UserStats> BuildUserStats();
+
+    /// @brief Handles the request for showing all users
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
+    static std::shared_ptr<IRequestResult> HandleShowUsers(std::shared_ptr<IRequestData> requestData);
 
     /// @brief Handles the request for logging in
     /// @param requestData Data sent by the client

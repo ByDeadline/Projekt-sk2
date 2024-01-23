@@ -58,6 +58,54 @@ void UserHandler::RemoveUser(std::string userId)
     Server::RemoveUserByUserId(userId);
 }
 
+std::list<UserActionResult::UserStats> UserHandler::BuildUserStats()
+{
+    std::list<UserActionResult::UserStats> userStats;
+    for (auto user : UserHandler::users)
+    {
+        UserActionResult::UserStats userStat;
+        
+        userStat.username = user->username;
+        
+        auto lobby = LobbyHandler::CheckUserInAnyLobby(user->id);
+        userStat.lobbyname = lobby != nullptr ? lobby->lobbyId : "None";
+
+        userStat.ingame = "No";
+        if (lobby != nullptr)
+        {
+            userStat.ingame = lobby->gameInProgress ? "Yes" : "No";
+        }
+
+        userStats.push_back(userStat);
+    }
+
+    return userStats;
+}
+
+std::shared_ptr<IRequestResult> UserHandler::HandleShowUsers(std::shared_ptr<IRequestData> requestData)
+{
+    auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
+    auto userActionResult = std::make_shared<UserActionResult>();
+
+    auto user = UserHandler::GetUserByUserId(userData->userId);
+    if (user != nullptr)
+    {
+        if (user->admin)
+        {
+            userActionResult->setUserStats(UserHandler::BuildUserStats());
+            userActionResult->resultType = UserActionResult::ResultTypeEnum::UserStatistics;
+            return userActionResult;
+        }
+
+        userActionResult->resultType = UserActionResult::ResultTypeEnum::NoPrivilages;
+        return userActionResult;
+    }
+
+    Log::Write(std::to_string(userData->clientId) + ": error: User not logged in");
+    userActionResult->resultType = UserActionResult::ResultTypeEnum::WrongIdOrNotLoggedIn;
+    return userActionResult;
+}
+
 std::shared_ptr<IRequestResult> UserHandler::HandleLogin(std::shared_ptr<IRequestData> requestData)
 {
     auto userData = std::make_shared<UserData>(*dynamic_cast<UserData*>(requestData.get()));
