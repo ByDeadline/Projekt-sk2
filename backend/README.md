@@ -37,7 +37,7 @@ make -C build
 - **<inGame>** Czy jest w grze. "y" lub "n"
 - **<isReady>** Czy gracz jest gotowy. "y" lub "n"
 - **<wordCount>** Ilość słów w tekscie
-- **<userProgress> Indywidualny postęp gracza**
+- **<userProgress>** Indywidualny postęp gracza
 
 ### Logowanie, oraz wylogowywanie
 Zanim będzie można wysyłać jakiekolwiek inne zapytanie do serwera trzeba się zalogować.
