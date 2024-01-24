@@ -46,6 +46,8 @@ public:
         this->CreateResultTypeMessage();
     }
 
+    /// @brief Sets the lobbies status to a text
+    /// @param usersInLobby A map with usernames and a bool telling if the user is ready
     void setLobbyStatus(std::map<std::string, bool> usersInLobby) {
         this->lobbyStatus = "";
         for (auto userInLobby : usersInLobby)
@@ -66,6 +68,7 @@ private:
     /// @brief A text that holds all the lobbies
     std::string lobbies;
 
+    /// @brief Lobby status as a text
     std::string lobbyStatus;
 
     /// @brief A dictionary holding a text to be sent to the user based on the set result type

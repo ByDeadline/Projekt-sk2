@@ -6,9 +6,11 @@
 
 #include "Player.h"
 
+/// @brief Defines and manages a game
 class Game
 {
 private:
+    /// @brief A vector containing random texts that can be used in a game
     std::vector<std::string> randomTexts
     {
         "As collected deficient objection by it discovery sincerity curiosity. Quiet decay who round three world whole has mrs man. Built the china there tried jokes which gay why. Assure in adieus wicket it is. But spoke round point and one joy. Offending her moonlight men sweetness see unwilling. Often of it tears whole oh balls share an.",
@@ -22,22 +24,46 @@ private:
         "Contented get distrusts certainty nay are frankness concealed ham. On unaffected resolution on considered of. No thought me husband or colonel forming effects. End sitting shewing who saw besides son musical adapted. Contrasted interested eat alteration pianoforte sympathize was. He families believed if no elegance interest surprise an. It abode wrong miles an so delay plate. She relation own put outlived may disposed."
     };
 
+    /// @brief Index of the choosen text in randomTexts vector
     int chosenText = 0;
+
+    /// @brief Number of words in the chosen text
     int wordCount = 0;
+
+    /// @brief Flag telling if the game is finished
     bool finished = false;
 
+    /// @brief Chooses a random text to be used as a text in this game
     void ChooseRandomText();
+
+    /// @brief Calculate how many words the choosen text contains
     void CalculateWordCount();
 
 public:
+    /// @brief List of players in the game
     std::list<Player> players;
 
+    /// @brief Gets the choosen text
+    /// @return The choosen text
     std::string GetText() { return this->randomTexts[this->chosenText]; }
-    int GetWordCount() { return this->wordCount; }
-    int IsFinished() { return this->finished; }
 
+    /// @brief Gets the word count for the choosen text
+    /// @return The word count for the choosen text
+    int GetWordCount() { return this->wordCount; }
+
+    /// @brief Gets a flag telling if the game is finished
+    /// @return A flag telling if the game is finished
+    bool IsFinished() { return this->finished; }
+
+    /// @brief Sets the choosen player's progress to a choosen number
+    /// @param userId User's unique id
+    /// @param progress The progress to be set for the player
     void SetPlayerProgress(std::string userId, int progress);
 
+    /// @brief Constructor
+    /// @param players List of players to be in game
     Game(std::list<Player> players);
+
+    /// @brief Destructor
     ~Game();
 };
