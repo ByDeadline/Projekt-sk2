@@ -28,16 +28,16 @@ make -C build
 
 # Wysyłanie zapytań do serwera i otrzymywanie odpowiedzi
 ### Definuje się następujące szablony:
-- **<username>** Wybrana nazwa użytkownika. np. "Dominik"
-- **<userId>** Unikalne id użytkownika, który jest zalogowany. np. "#0"
-- **<targetUserId>** Id użytkownika, z którym chcemy coś zrobić
-- **<lobbyId>** Unikalne id lobby. np. "$1"
-- **<inLobbyCount>** Ilość użytkowników w lobby
-- **<maxLobbyCount>** Maksymalna liczba użytkowników w lobby
-- **<inGame>** Czy jest w grze. "y" lub "n"
-- **<isReady>** Czy gracz jest gotowy. "y" lub "n"
-- **<wordCount>** Ilość słów w tekscie
-- **<userProgress>** Indywidualny postęp gracza
+- ```<username>``` Wybrana nazwa użytkownika. np. "Dominik"
+- ```<userId>``` Unikalne id użytkownika, który jest zalogowany. np. "#0"
+- ```<targetUserId>``` Id użytkownika, z którym chcemy coś zrobić
+- ```<lobbyId>``` Unikalne id lobby. np. "$1"
+- ```<inLobbyCount>``` Ilość użytkowników w lobby
+- ```<maxLobbyCount>``` Maksymalna liczba użytkowników w lobby
+- ```<inGame>``` Czy jest w grze. "y" lub "n"
+- ```<isReady>``` Czy gracz jest gotowy. "y" lub "n"
+- ```<wordCount>``` Ilość słów w tekscie
+- ```<userProgress>``` Indywidualny postęp gracza
 
 ### Logowanie, oraz wylogowywanie
 Zanim będzie można wysyłać jakiekolwiek inne zapytanie do serwera trzeba się zalogować.
