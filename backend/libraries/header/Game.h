@@ -39,4 +39,5 @@ public:
     void SetPlayerProgress(std::string userId, int progress);
 
     Game(std::list<Player> players);
+    ~Game();
 };

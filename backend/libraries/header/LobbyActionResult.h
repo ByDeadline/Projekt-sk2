@@ -21,7 +21,8 @@ public:
         LobbyNotFound,
         NotInLobby,
         GameInProgress,
-        LobbyStatus
+        LobbyStatus,
+        NoPrivilages
     };
     ResultTypeEnum resultType;
 
@@ -82,7 +83,8 @@ private:
             { ResultTypeEnum::LobbyNotFound, "failed,Lobby with this id does not exist" },
             { ResultTypeEnum::NotInLobby, "failed,User is not in this lobby" },
             { ResultTypeEnum::GameInProgress, "failed,The game is already in progress" },
-            { ResultTypeEnum::LobbyStatus, "status," + this->lobbyStatus }
+            { ResultTypeEnum::LobbyStatus, "status," + this->lobbyStatus },
+            { ResultTypeEnum::NoPrivilages, "failed,No privilages" }
         };
     }
 };

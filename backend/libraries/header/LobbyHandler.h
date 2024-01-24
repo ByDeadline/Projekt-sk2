@@ -79,6 +79,11 @@ public:
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleCreateLobby(std::shared_ptr<IRequestData> requestData);
 
+    /// @brief Handles the request for removing a lobby
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
+    static std::shared_ptr<IRequestResult> HandleRemoveLobby(std::shared_ptr<IRequestData> requestData);
+
     /// @brief Handles the request for getting ready
     /// @param requestData Data sent by the client
     /// @return Result of the request
