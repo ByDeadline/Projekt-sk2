@@ -7,6 +7,7 @@
 #include "../header/UserHandler.h"
 #include "../header/Log.h"
 #include "../header/LobbyHandler.h"
+#include "../header/TCPHandler.h"
 
 int Server::idCounter = 0;
 std::list<std::shared_ptr<ServerConnection>> Server::serverConnections;
@@ -14,6 +15,44 @@ std::list<std::shared_ptr<ServerConnection>> Server::serverConnections;
 std::list<std::shared_ptr<ServerConnection>> Server::GetServerConnections()
 {
     return Server::serverConnections;
+}
+
+std::shared_ptr<ServerConnection> Server::GetServerConnectionByUserId(std::string userId)
+{
+    for (auto connection : Server::serverConnections)
+    {
+        if (connection->user->id == userId)
+            return connection;
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<ServerConnection> Server::GetServerConnectionByClientId(int clientId)
+{
+    for (auto connection : Server::serverConnections)
+    {
+        if (connection->clientId == clientId)
+            return connection;
+    }
+
+    return nullptr;
+}
+
+void Server::DisconnectClient(int clientId)
+{
+    auto connection = Server::GetServerConnectionByClientId(clientId);
+    if (connection != nullptr)
+    {
+        if (connection->user != nullptr)
+            UserHandler::RemoveUser(connection->user->id);
+    }
+    connection->connected = false;
+}
+
+void Server::RemoveServerConnection(int clientId)
+{
+    Server::serverConnections.remove_if([=](std::shared_ptr<ServerConnection> serverConnection) { return serverConnection->clientId == clientId; });
 }
 
 std::shared_ptr<User> Server::GetUserById(int clientId)
@@ -27,32 +66,34 @@ std::shared_ptr<User> Server::GetUserById(int clientId)
     return nullptr;
 }
 
-void Server::RemoveUserById(int clientId)
+void Server::RemoveUserByUserId(std::string userId)
 {
     for (auto connection : Server::serverConnections)
     {
-        if (connection->clientId == clientId)
+        if (connection->user != nullptr && connection->user->id == userId)
             return connection->user.reset();
     }
 }
 
-std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in clientAddress)
+std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in clientAddress, int fd)
 {
     auto serverConnection = std::make_shared<ServerConnection>();
     serverConnection->clientId = Server::idCounter++;
     serverConnection->clientAddress = clientAddress;
     serverConnection->connected = true;
+    serverConnection->fd = fd;
     Server::serverConnections.push_back(serverConnection);
 
     return serverConnection;
 }
 
-std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in clientAddress, std::shared_ptr<User> user)
+std::shared_ptr<ServerConnection> Server::AddServerConnection(sockaddr_in clientAddress, int fd, std::shared_ptr<User> user)
 {
     std::shared_ptr<ServerConnection> serverConnection;
     serverConnection->clientId = Server::idCounter++;
     serverConnection->clientAddress = clientAddress;
     serverConnection->user = user;
+    serverConnection->fd = fd;
     Server::serverConnections.push_back(serverConnection);
 
     return serverConnection;
@@ -82,9 +123,18 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::UserLogout:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for loging out");
             return UserHandler::HandleLogout(requestData);
+        case RequestType::RemoveUser:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for removing a user");
+            return UserHandler::HandleRemoveUser(requestData);
+        case RequestType::ShowUsers:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for showing all users");
+            return UserHandler::HandleShowUsers(requestData);
         case RequestType::CreateLobby:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for creating a lobby");
             return LobbyHandler::HandleCreateLobby(requestData);
+        case RequestType::RemoveLobby:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for removing a lobby");
+            return LobbyHandler::HandleRemoveLobby(requestData);
         case RequestType::ShowLobbies:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for showing all lobbies");
             return LobbyHandler::HandleShowLobbies(requestData);
@@ -94,9 +144,26 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::LeaveLobby:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for leaving a lobby");
             return LobbyHandler::HandleLeaveLobby(requestData);
+        case RequestType::SetReady:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for getting ready");
+            return LobbyHandler::HandleReady(requestData);
+        case RequestType::GiveProgress:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for giving progres");
+            return LobbyHandler::HandleProgressUpdate(requestData);
+        case RequestType::Alive:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for informing of being alive");
+            return UserHandler::HandleAlive(requestData);
     }
 
     Log::Write(std::to_string(requestData->clientId) + "Server did not recognise the request");
     auto result = std::make_shared<IRequestResult>();
     return result;
+}
+
+void Server::Send(std::list<Player> users, std::shared_ptr<IRequestResult> requestResult)
+{
+    for (auto user : users)
+    {
+        TCPHandler::SendWithFd(Server::GetServerConnectionByUserId(user.id), requestResult);
+    }
 }

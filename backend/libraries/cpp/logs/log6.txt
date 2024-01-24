@@ -1,0 +1,50 @@
+TCP listen started.
+New user connection from 127.0.0.1. Assgined id: 0
+0: sent request to TCP handler. Contents: 'login,dominik'
+0: Server recognised the request for creating a user
+0: Successfully logged in user dominik#0
+0: TCP handler answered with contents: 'success,#0'
+0: sent request to TCP handler. Contents: 'create_lobby,#0'
+0: Server recognised the request for creating a lobby
+0: Successfully created a lobby with id: $0
+0: TCP handler answered with contents: 'success,$0'
+0: sent request to TCP handler. Contents: 'ready,#0,$0'
+0: Server recognised the request for getting ready
+0: Successfully set the player ready
+0: TCP handler answered with contents: 'success,$0'
+New user connection from 127.0.0.1. Assgined id: 1
+1: sent request to TCP handler. Contents: 'login,kuba'
+1: Server recognised the request for creating a user
+1: Successfully logged in user kuba#1
+1: TCP handler answered with contents: 'success,#1'
+1: sent request to TCP handler. Contents: 'join_lobby,#1,$0'
+1: Server recognised the request for joining a lobby
+1: Successfully created a lobby with id: $0
+1: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'ready,#1,$0'
+1: Server recognised the request for getting ready
+1: Successfully set the player ready
+Game started in lobby $0
+Game started in lobby 
+0: TCP handler answered with contents: 'text,57,Contented get distrusts certainty nay are frankness concealed ham. On unaffected resolution on considered of. No thought me husband or colonel forming effects. End sitting shewing who saw besides son musical adapted. Contrasted interested eat alteration pianoforte sympathize was. He families believed if no elegance interest surprise an. It abode wrong miles an so delay plate. She relation own put outlived may disposed.,dominik,kuba'
+1: TCP handler answered with contents: 'text,57,Contented get distrusts certainty nay are frankness concealed ham. On unaffected resolution on considered of. No thought me husband or colonel forming effects. End sitting shewing who saw besides son musical adapted. Contrasted interested eat alteration pianoforte sympathize was. He families believed if no elegance interest surprise an. It abode wrong miles an so delay plate. She relation own put outlived may disposed.,dominik,kuba'
+1: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'progress,#1,$0,10'
+1: Server recognised the request for giving progres
+Set #1's progress to 10
+0: TCP handler answered with contents: 'status,dominik,0
+kuba,10
+'
+1: TCP handler answered with contents: 'status,dominik,0
+kuba,10
+'
+0: sent request to TCP handler. Contents: 'progress,#0,$0,60'
+0: Server recognised the request for giving progres
+Set #0's progress to 60
+Game in lobby $0 finished
+0: TCP handler answered with contents: 'finish,dominik,60
+kuba,10
+'
+1: TCP handler answered with contents: 'finish,dominik,60
+kuba,10
+'

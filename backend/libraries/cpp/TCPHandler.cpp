@@ -7,6 +7,7 @@
 #include <thread>
 #include <poll.h>
 #include <memory>
+#include <signal.h>
 
 #include "../header/TCPHandler.h"
 #include "../header/GlobalSettings.h"
@@ -48,38 +49,75 @@ void TCPHandler::HandleConnectionAsync(int fd, sockaddr_in clientAddress)
     inet_ntop(AF_INET, &(clientAddress.sin_addr), addressChar, GlobalSettings::MaxCharAddressLength);
     std::string ipAddress(addressChar);
 
-    auto clientConnection = Server::AddServerConnection(clientAddress);
+    auto clientConnection = Server::AddServerConnection(clientAddress, fd);
     Log::Write("New user connection from " + ipAddress + ". Assgined id: " + std::to_string(clientConnection->clientId));
 
     pollfd clientPoll {};
     clientPoll.fd = fd;
     clientPoll.events = POLLIN;
 
+    signal(SIGPIPE, SIG_IGN);
+    bool noResponse = false;
     while (clientConnection->connected)
     {
-        poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
-        if (clientPoll.revents & POLLIN)
+        try
         {
-            char data[GlobalSettings::TCPMaxCharReadLength];
-            int len = read(fd, data, sizeof(data) - 1);
-            if (len > 0)
+            poll(&clientPoll, 1, GlobalSettings::TCPUserConnectionTimeout);
+            if ((clientPoll.revents & POLLIN))
             {
-                std::string recivedText(data, len - 1);
+                noResponse = false;
+                char data[GlobalSettings::TCPMaxCharReadLength];
+                int len = read(fd, data, sizeof(data) - 1);
+                if (len > 0)
+                {
+                    std::string recivedText(data, len - 1);
 
-                Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
+                    Log::Write(std::to_string(clientConnection->clientId) + ": sent request to TCP handler. Contents: '" + recivedText + "'");
 
-                auto requestData = RequestConverter::Convert(recivedText);
-                requestData->clientId = clientConnection->clientId;
-                auto requestResult = Server::ReciveRequest(requestData);
-                std::string textToSend = RequestConverter::Convert(requestResult);
-                write(fd, textToSend.c_str(), textToSend.size());
+                    auto requestData = RequestConverter::Convert(recivedText);
+                    requestData->clientId = clientConnection->clientId;
+                    auto requestResult = Server::ReciveRequest(requestData);
 
-                Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                    if (requestResult != nullptr)
+                    {
+                        std::string textToSend = RequestConverter::Convert(requestResult);
+                        write(fd, textToSend.c_str(), textToSend.size());
+                        Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                    }
+                }
+            }
+            else
+            {
+                if (noResponse)
+                {
+                    std::string textToSend = "failed,No response - disconnecting";
+                    write(fd, textToSend.c_str(), textToSend.size());
+                    Server::DisconnectClient(clientConnection->clientId);
+                    Log::Write(std::to_string(clientConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
+                }
+                else
+                {
+                    noResponse = true;
+                    Log::Write(std::to_string(clientConnection->clientId) + ": User is inactive for too long");
+                }
             }
         }
-        else
+        catch (const std::string &exc)
         {
-            // klient nic nie robił przez 30s, sprawdźmy czy żyje.
+            Log::Write(std::to_string(clientConnection->clientId) + exc);
+            Server::DisconnectClient(clientConnection->clientId);
         }
     }
+
+    Server::RemoveServerConnection(clientConnection->clientId);
+    shutdown(fd, SHUT_RDWR);
+    close(fd);
+}
+
+void TCPHandler::SendWithFd(std::shared_ptr<ServerConnection> serverConnection, std::shared_ptr<IRequestResult> requestResult)
+{
+    std::string textToSend = RequestConverter::Convert(requestResult);
+    write(serverConnection->fd, textToSend.c_str(), textToSend.size());
+
+    Log::Write(std::to_string(serverConnection->clientId) + ": TCP handler answered with contents: '" + textToSend + "'");
 }

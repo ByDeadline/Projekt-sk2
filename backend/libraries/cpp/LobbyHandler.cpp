@@ -1,8 +1,13 @@
+#include <thread>
+
 #include "../header/LobbyHandler.h"
 #include "../header/LobbyData.h"
 #include "../header/UserHandler.h"
 #include "../header/LobbyActionResult.h"
 #include "../header/Log.h"
+#include "../header/Server.h"
+#include "../header/Game.h"
+#include "../header/GameActionResult.h"
 
 std::list<std::shared_ptr<Lobby>> LobbyHandler::lobbies;
 int LobbyHandler::lobbyIdCounter = 0;
@@ -30,6 +35,15 @@ Lobby::LobbyResult LobbyHandler::JoinLobby(std::string userId, std::string lobby
     return Lobby::LobbyResult::LobbyDoesNotExist;
 }
 
+Lobby::LobbyResult LobbyHandler::GetReady(std::string userId, std::string lobbyId)
+{
+    auto lobby = LobbyHandler::GetLobbyById(lobbyId);
+    if (lobby != nullptr && lobby->lobbyId == lobbyId)
+            return lobby->SetUserReady(userId);
+
+    return Lobby::LobbyResult::LobbyDoesNotExist;
+}
+
 std::shared_ptr<Lobby> LobbyHandler::GetLobbyById(std::string lobbyId)
 {
     for (auto lobby : LobbyHandler::lobbies)
@@ -41,15 +55,29 @@ std::shared_ptr<Lobby> LobbyHandler::GetLobbyById(std::string lobbyId)
     return nullptr;
 }
 
-bool LobbyHandler::CheckUserInAnyLobby(std::string userId)
+std::shared_ptr<Lobby> LobbyHandler::CheckUserInAnyLobby(std::string userId)
 {
     for (auto lobby : LobbyHandler::lobbies)
     {
         if (lobby->CheckUserInLobby(userId))
-            return true;
+            return lobby;
     }
 
-    return false;
+    return nullptr;
+}
+
+void LobbyHandler::RemoveUserFromLobby(std::string userId)
+{
+    auto lobby = LobbyHandler::CheckUserInAnyLobby(userId);
+    if (lobby != nullptr)
+    {
+        lobby->RemoveUser(userId, true);
+    }
+}
+
+void LobbyHandler::RemoveLobby(std::string lobbyId)
+{
+    LobbyHandler::lobbies.remove_if([=](std::shared_ptr<Lobby> lobby) { return lobby->lobbyId == lobbyId; });
 }
 
 std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IRequestData> requestData)
@@ -61,7 +89,7 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleJoinLobby(std::shared_ptr<IR
 
     if (user != nullptr)
     {
-        if (!LobbyHandler::CheckUserInAnyLobby(lobbyData->userId))
+        if (LobbyHandler::CheckUserInAnyLobby(lobbyData->userId) == nullptr)
         {
             auto lobby = LobbyHandler::GetLobbyById(lobbyData->lobbyId);
             auto joinResult = LobbyHandler::JoinLobby(lobbyData->userId, lobbyData->lobbyId);
@@ -142,7 +170,7 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleCreateLobby(std::shared_ptr<
 
     if (user != nullptr)
     {
-        if (!LobbyHandler::CheckUserInAnyLobby(lobbyData->userId))
+        if (LobbyHandler::CheckUserInAnyLobby(lobbyData->userId) == nullptr)
         {
             auto lobbyId = LobbyHandler::CreateLobby();
             lobbyData->lobbyId = lobbyId;
@@ -151,6 +179,135 @@ std::shared_ptr<IRequestResult> LobbyHandler::HandleCreateLobby(std::shared_ptr<
 
         lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::AlreadyInLobby;
         Log::Write(std::to_string(lobbyData->clientId) + ": This user is already in a lobby.");
+        return lobbyActionResult;
+    }
+
+    Log::Write(std::to_string(lobbyData->clientId) + ": User not logged in.");
+    lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NotLoggedIn;
+    return lobbyActionResult;
+}
+
+std::shared_ptr<IRequestResult> LobbyHandler::HandleRemoveLobby(std::shared_ptr<IRequestData> requestData)
+{
+    auto lobbyData = std::make_shared<LobbyData>(*dynamic_cast<LobbyData*>(requestData.get()));
+    auto user = UserHandler::GetUserByUserId(lobbyData->userId);
+
+    auto lobbyActionResult = std::make_shared<LobbyActionResult>();
+
+    if (user != nullptr)
+    {
+        if (user->admin)
+        {
+            if (LobbyHandler::GetLobbyById(lobbyData->lobbyId))
+            {
+                LobbyHandler::RemoveLobby(lobbyData->lobbyId);
+                lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::Success1;
+                lobbyActionResult->setLobbyId(lobbyData->lobbyId);
+                Log::Write(std::to_string(lobbyData->clientId) + ": Successfully remove the lobby " + lobbyData->lobbyId);
+                return lobbyActionResult;
+            }
+            else
+            {
+                lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::LobbyNotFound;
+                Log::Write(std::to_string(lobbyData->clientId) + ": Lobby with this id does not extist");
+                return lobbyActionResult;
+            }
+        }
+        else
+        {
+            lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NoPrivilages;
+            Log::Write(std::to_string(lobbyData->clientId) + ": No privilages to delete the lobby");
+            return lobbyActionResult;
+        }
+    }
+
+    Log::Write(std::to_string(lobbyData->clientId) + ": User not logged in.");
+    lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NotLoggedIn;
+    return lobbyActionResult;
+}
+
+void LobbyHandler::AsyncStartGame(std::string lobbyId)
+{
+    auto lobby = LobbyHandler::GetLobbyById(lobbyId);
+    lobby->StartGame();
+
+    Log::Write("Number of words to be written: " + lobby->game->GetWordCount());
+}
+
+std::shared_ptr<IRequestResult> LobbyHandler::HandleProgressUpdate(std::shared_ptr<IRequestData> requestData)
+{
+    auto lobbyData = std::make_shared<LobbyData>(*dynamic_cast<LobbyData*>(requestData.get()));
+    auto gameActionResult = std::make_shared<GameActionResult>();
+
+    auto lobby = LobbyHandler::GetLobbyById(lobbyData->lobbyId);
+    if (lobby->gameInProgress)
+    {
+        try
+        {
+            int progress = std::stoi(lobbyData->progress);
+            lobby->game->SetPlayerProgress(lobbyData->userId, progress);
+
+            gameActionResult->setStatus(lobby->game->players);
+            if (lobby->game->IsFinished())
+                LobbyHandler::RemoveLobby(lobby->lobbyId);
+        }
+        catch (...)
+        {
+        }
+
+    }
+
+    return nullptr;
+}
+
+void LobbyHandler::CheckAllReady(std::string lobbyId)
+{
+    auto lobby = LobbyHandler::GetLobbyById(lobbyId);
+    if (lobby->GetUserCount() > 1 && lobby->CheckAllUsersReady())
+    {
+        Log::Write("Game started in lobby " + lobbyId);
+        LobbyHandler::AsyncStartGame(lobbyId);
+    }
+}
+
+std::shared_ptr<IRequestResult> LobbyHandler::HandleReady(std::shared_ptr<IRequestData> requestData)
+{
+    auto lobbyData = std::make_shared<LobbyData>(*dynamic_cast<LobbyData*>(requestData.get()));
+    auto user = UserHandler::GetUserByUserId(lobbyData->userId);
+
+    auto lobbyActionResult = std::make_shared<LobbyActionResult>();
+
+    if (user != nullptr)
+    {
+        auto lobby = LobbyHandler::GetLobbyById(lobbyData->lobbyId);
+        if (lobby == nullptr)
+        {
+            lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::LobbyNotFound;
+            Log::Write(std::to_string(lobbyData->clientId) + ": This user tried to be ready in a lobby that does not exist.");
+            return lobbyActionResult;
+        }
+        else if (lobby->CheckUserInLobby(lobbyData->userId))
+        {
+            auto getReadyResult = LobbyHandler::GetReady(lobbyData->userId, lobbyData->lobbyId);
+            switch (getReadyResult)
+            {
+                case Lobby::LobbyResult::GameInProgress:
+                    lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::GameInProgress;
+                    Log::Write(std::to_string(lobbyData->clientId) + ": This user tried to join to a lobby that is already in game.");
+                    return lobbyActionResult;
+            }
+        }
+        else
+        {
+            lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::NotInLobby;
+            Log::Write(std::to_string(lobbyData->clientId) + ": The user is not in this lobby");
+            return lobbyActionResult;
+        }
+
+        lobbyActionResult->resultType = LobbyActionResult::ResultTypeEnum::Success1;
+        lobbyActionResult->setLobbyId(lobbyData->lobbyId);
+        Log::Write(std::to_string(lobbyData->clientId) + ": Successfully set the player ready");
+        LobbyHandler::CheckAllReady(lobbyData->lobbyId);
         return lobbyActionResult;
     }
 

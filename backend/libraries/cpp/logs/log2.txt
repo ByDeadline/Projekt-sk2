@@ -1,0 +1,24 @@
+TCP listen started.
+New user connection from 127.0.0.1. Assgined id: 0
+0: sent request to TCP handler. Contents: 'login,dominik'
+0: Server recognised the request for creating a user
+0: Successfully logged in user dominik#0
+0: TCP handler answered with contents: 'success,#0'
+New user connection from 127.0.0.1. Assgined id: 1
+1: sent request to TCP handler. Contents: 'login,kuba'
+1: Server recognised the request for creating a user
+1: Successfully logged in user kuba#1
+1: TCP handler answered with contents: 'success,#1'
+0: sent request to TCP handler. Contents: 'create_lobby,#0,$0'
+0: Server recognised the request for creating a lobby
+0: Successfully created a lobby with id: $0
+0: TCP handler answered with contents: 'success,$0'
+1: sent request to TCP handler. Contents: 'join_lobby,#1,$0'
+1: Server recognised the request for joining a lobby
+1: Successfully created a lobby with id: $0
+1: TCP handler answered with contents: 'success,$0'
+0: sent request to TCP handler. Contents: 'ready,#0,$0'
+0: Server recognised the request for getting ready
+0: TCP handler answered with contents: 'success,'
+1: sent request to TCP handler. Contents: 'ready,#1,$0'
+1: Server recognised the request for getting ready

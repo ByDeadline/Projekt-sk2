@@ -40,9 +40,11 @@ std::shared_ptr<IRequestData> RequestConverter::Convert(std::string data)
     
     if (items.size() != 0)
     {
-        if (items.front() == "login" || items.front() == "logout")
+        if (items.front() == "login" || items.front() == "logout" || items.front() == "alive" || items.front() == "admin" || items.front() == "remove_user"
+                || items.front() == "show_users")
             return UserRequestConverter::Convert(items);
-        else if (items.front() == "create_lobby" || items.front() == "show_lobbies" || items.front() == "join_lobby" || items.front() == "leave_lobby")
+        else if (items.front() == "create_lobby" || items.front() == "show_lobbies" || items.front() == "join_lobby" || items.front() == "leave_lobby" || items.front() == "ready"
+                || items.front() == "progress" || items.front() == "remove_lobby")
             return LobbyRequestConverter::Convert(items);
     }
 

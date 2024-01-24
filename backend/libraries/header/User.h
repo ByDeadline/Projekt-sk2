@@ -11,4 +11,7 @@ public:
 
     /// @brief Unique user id
     std::string id;
+
+    /// @brief User's privilages
+    bool admin;
 };
