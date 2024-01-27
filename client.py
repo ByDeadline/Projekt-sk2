@@ -20,8 +20,10 @@ global game_started
 game_started = False
 
 def wrap_string(string, max_width):
-    print("string",string)
-    return textwrap.wrap(string, max_width)
+    wraped_string = textwrap.wrap(string, max_width)
+    for i in range(len(wraped_string)):
+        wraped_string[i] += " "
+    return wraped_string
 
 
 class ServerCommunication:
@@ -104,10 +106,8 @@ class ServerCommunication:
         try:
             response = self.socket.recv(1024).decode()
             if "text" in response:
-                print("got text",response.split(',')[1:])
                 global game_string
                 player.room.started = True
-                print("game string",response.split('\n')[-1])
                 game_string = response.split("\n")[-1].split(',')[2]
                 global gama_string_length
                 game_string_length = response.split("\n")[-1].split(',')[1]
@@ -120,59 +120,59 @@ class ServerCommunication:
         finally:
             # Set the socket back to blocking mode
             fcntl.fcntl(self.socket, fcntl.F_SETFL, 0)
+    def update_game(self,room):
 
-    def send_letter(self, letter):
-        # self.socket.send(letter.encode())
+        #dodac sprawdzanie czy status jest w odpowiedzi i jesli nie to nie updateowac
 
-        self.sent_letters.append(letter)
-        return True
+        fcntl.fcntl(self.socket, fcntl.F_SETFL, os.O_NONBLOCK)
+        try:
+            response = self.socket.recv(1024).decode()
 
+            response = response.split('\n')
+
+            print("response",response)
+            print("response[0]",response[0])
+            for x in response:
+                if "finish" in x.split(","):
+                    print("finished")
+                    room.end_game()
+            if "status" in response[0].split(","):
+                room.progress = {}
+                print("udalo")
+                players = response
+
+                for player in players:
+                    if player != "":
+                        player = player.replace('status,', '')
+                        print("player",player)
+                        room.update_progress(player.split(',')[0], int(player.split(',')[1]))
+                print("room progress",room.progress)
+
+        except:
+            pass
+        finally:
+            # Set the socket back to blocking mode
+            fcntl.fcntl(self.socket, fcntl.F_SETFL, 0)
     def send_disconnect(self):
         self.socket.send(("disconnect," + self.my_id + " ").encode())
         self.socket.close()
         self.connected = False
 
-    def get_players_in_room(self):
-        # self.socket.send("get_players_in_room".encode())
-        # players = self.socket.recv(1024).decode()
-        players = ["Player 1", "Player 2", "Player 3", "Player 4"]
-        return players
-
-    def get_players_progress(self, progress):
-        players = self.get_players_in_room()
-        progress = progress
-        for player in players:
-            # self.socket.send(("get_player_progress " + player).encode())
-            # progress = self.socket.recv(1024).decode()
-            progress[player] += 5
-        return progress
-
-    def leave_room(self):
-        # self.socket.send("leave_room".encode())
-        return True
 
     def player_ready(self, player):
         print("player name", player.name, "room name", player.room.name)
         self.socket.send(("ready," + self.my_id + "," + player.room.name + " ").encode())
         return True
 
-    def player_unready(self):
-        # self.socket.send("player_unready".encode())
-        return True
-
     def send_progress(self, prog):
-        self.socket.send(("progress," + self.my_id + "," + self.my_room_id + "," + prog).encode())
+        self.socket.send(("progress," + self.my_id + "," + self.my_room_id + "," + prog+" ").encode())
         return True
 
-    def listen_for_game_start(self):
-        response = self.socket.recv(1024).decode()
-        return True
 
 
 def send_alive(quit,socket,my_id):
     while not quit.is_set():
         socket.send(("alive,"+my_id+" ").encode())
-        print("alive")
         time.sleep(10)
 
     print("quit")
@@ -187,6 +187,8 @@ class Room():
         self.player_count = len(players)
         self.started = False
         self.ready_players = []
+        self.progress = {}
+        self.game_end = False
 
     def add_player(self, player):
         self.players.append(player)
@@ -201,13 +203,10 @@ class Room():
         self.started = True
 
     def player_ready(self, player):
-        if player.name in self.ready_players:
-            if self.server.player_unready():
-                self.ready_players.remove(player.name)
-                return False
         if self.server.player_ready(player):
             self.ready_players.append(player.name)
-        return True
+            return True
+        return False
 
     def player_unready(self, player):
         if player not in self.ready_players:
@@ -231,10 +230,18 @@ class Room():
                 self.player_count += 1
                 if player.split(',')[1] == "y":
                     self.ready_players.append(player.split(',')[0])
+                self.update_progress(player.split(',')[0], 0)
         print("unpacked players",self.players)
+        self.players.sort(key=lambda x: x.name)
 
-
-
+    def start_game(self):
+        for player in self.players:
+            self.progress[player.name] = 0
+    def update_progress(self, player_name, progress):
+        print("updating progress",player_name,progress)
+        self.progress[player_name] = progress
+    def end_game(self):
+        self.game_end = True
 class Player():
     def __init__(self, name, server_communication, room=None):
         self.name = name
@@ -311,7 +318,7 @@ class Game():
 
 
 class InputBox:
-    def __init__(self, x, y, w, h, function_after_enter, text=[]):
+    def __init__(self, x, y, w, h, function_after_enter = None, text=[], is_enter_blocked=False):
         self.x = x
         self.y = y
         self.w = w
@@ -322,6 +329,7 @@ class InputBox:
         self.active = True
         self.color = COLOR_LIGHT_BLUE
         self.whole_text = ""
+        self.is_enter_blocked = is_enter_blocked
         if self.active:
             self.color = COLOR_LIGHT_BLUE
         else:
@@ -341,9 +349,10 @@ class InputBox:
         if event.type == pygame.KEYDOWN:
             if self.active:
                 if event.key == pygame.K_RETURN:
-                    self.function_after_enter(self.visible_text)
-                    self.visible_text = []
-                    self.whole_text = ""
+                    if not self.is_enter_blocked:
+                        self.function_after_enter(self.visible_text)
+                        self.visible_text = []
+                        self.whole_text = ""
 
                 elif event.key == pygame.K_BACKSPACE:
                     if len(self.visible_text) > 0 and len(self.whole_text) > 0:
@@ -398,7 +407,6 @@ def draw_room_list(screen, game, player, server, rooms):
     textRect.center = (SCREEN_WIDTH - 80, SCREEN_HEIGHT - 25)
     screen.blit(text, textRect)
 
-    # hack
     if isinstance(rooms, dict):
         global rooms_copy
         rooms_copy = rooms.copy()
@@ -429,7 +437,14 @@ def draw_room_list(screen, game, player, server, rooms):
             textRect.center = (record_width - 30, 75 + record_height * i)
             screen.blit(text, textRect)
         i += 1
-
+    #draw refresh button
+    refresh_button = pygame.rect.Rect(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 80, 140, 30)
+    pygame.draw.rect(screen, COLOR_GREEN, refresh_button)
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    text = font.render('Refresh', True, COLOR_DARK_BLUE)
+    textRect = text.get_rect()
+    textRect.center = (SCREEN_WIDTH - 80, SCREEN_HEIGHT - 65)
+    screen.blit(text, textRect)
 
 def draw_player_name_input(screen, input_box):
     font = pygame.font.Font('freesansbold.ttf', 32)
@@ -441,7 +456,7 @@ def draw_player_name_input(screen, input_box):
     pygame.display.flip()
 
 
-def draw_room(screen, room, server):
+def draw_room(screen, room, server,cars):
     red_check = pygame.image.load("red_check.png")
     red_check = pygame.transform.scale(red_check, (30, 30))
     green_check = pygame.image.load("green_check.jpg")
@@ -475,7 +490,10 @@ def draw_room(screen, room, server):
         else:
             screen.blit(red_check, (SCREEN_WIDTH - 50, text_margin + top_margin + record_height * i - 15))
 
-        active_players = server.get_players_in_room()
+        #draw coresponding car
+
+        screen.blit(cars[i], (SCREEN_WIDTH - 200, text_margin + top_margin + record_height * (i-1)))
+
 
     font = pygame.font.Font('freesansbold.ttf', font_size)
     text = font.render(room.name, True, COLOR_DARK_BLUE)
@@ -484,16 +502,15 @@ def draw_room(screen, room, server):
     screen.blit(text, textRect)
 
 
-def draw_game(screen, game, server, cars, input_box):
+def draw_game(screen, game, server, cars, input_box, room, player):
     font_size = 20
     left_margin = 50
+    right_margin = 50
     top_margin = 100
     car_margin = 100
-    screen.blit(cars[0], (left_margin, top_margin))
-    screen.blit(cars[1], (left_margin, top_margin + car_margin))
-    screen.blit(cars[2], (left_margin, top_margin + car_margin * 2))
-    screen.blit(cars[3], (left_margin, top_margin + car_margin * 3))
-
+    track = SCREEN_WIDTH - left_margin - right_margin *2
+    for i in range(len(room.players)):
+        screen.blit(cars[i], (left_margin + track * room.progress[room.players[i].name]/len(game_string.split(" ")), top_margin + car_margin * i))
     font = pygame.font.Font('freesansbold.ttf', font_size)
     wrapped_string = wrap_string(game_string, 70)
     text_width = 0
@@ -517,7 +534,18 @@ def draw_game(screen, game, server, cars, input_box):
         text_width = 0
         line += 1
     text_input.draw(screen)
+    if room.game_end:
+        screen.fill((255, 255, 255))
+        lider_board = list(dict(sorted(room.progress.items(), key=lambda item: item[1])).keys())
+        font = pygame.font.Font('freesansbold.ttf', 30)
 
+        text = font.render("Game finished "+"First place: "+str(lider_board[-1]), True, COLOR_DARK_BLUE)
+        textRect = text.get_rect()
+        textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        screen.blit(text, textRect)
+        pygame.display.flip()
+        time.sleep(5)
+        player.room = None
 
 # Set up the drawing window
 screen = pygame.display.set_mode([SCREEN_HEIGHT, SCREEN_WIDTH], )
@@ -535,7 +563,7 @@ def main(logged_in=False):
     game = Game(server)
     player = Player("", server)
     rooms_to_show = {}
-
+    cars = []
     blue_car = pygame.image.load("blue_car.png")
     blue_car = pygame.transform.scale(blue_car, (100, 100))
     red_car = pygame.image.load("red_car.png")
@@ -547,7 +575,7 @@ def main(logged_in=False):
     cars = [blue_car, red_car, white_car, black_car]
 
     input_box_name = InputBox(SCREEN_WIDTH // 2, (SCREEN_HEIGHT // 2) + 50, 140, 32, player.set_name)
-    input_box_answer = InputBox(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 400, 400, 32, server.send_letter)
+    input_box_answer = InputBox(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 200, 400, 32, is_enter_blocked=True)
 
 
     thread_started = False
@@ -590,6 +618,9 @@ def main(logged_in=False):
                             1] < SCREEN_HEIGHT - 10:
                             if player.create_room():
                                 rooms_to_show = server.get_rooms(game)
+                        if SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 80 < mouse_pos[
+                            1] < SCREEN_HEIGHT - 50:
+                            rooms_to_show = server.get_rooms(game)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         logged_in = False
@@ -609,7 +640,8 @@ def main(logged_in=False):
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if event.button == 1:
                             mouse_pos = event.pos
-                            print(mouse_pos)
+
+                            # check if player clicked ready button
                             if SCREEN_WIDTH // 2 - 45 < mouse_pos[0] < SCREEN_WIDTH // 2 + 45 and SCREEN_HEIGHT - 100 < \
                                     mouse_pos[1] < SCREEN_HEIGHT - 70:
                                 if player.room.player_ready(player):
@@ -627,10 +659,10 @@ def main(logged_in=False):
                             player.room = None
                             break
                         if event.key == pygame.K_SPACE:
-                            print(input_box_answer.whole_text, game_string)
+
                             if input_box_answer.whole_text.split(" ") == game_string.split(" ")[
                                                                          0:len(input_box_answer.whole_text.split(" "))]:
-                                if server.send_progress(len(input_box_answer.whole_text.split())):
+                                if server.send_progress(str(len(input_box_answer.whole_text.split(" ")))):
                                     input_box_answer.visible_text = []
                                     input_box_answer.whole_text += " "
                                     input_box_answer.draw(screen)
@@ -660,12 +692,13 @@ def main(logged_in=False):
 
             # Draw game
             if player.room.started:
-                draw_game(screen, game, server, cars, input_box_answer)
+                server.update_game(player.room)
+                draw_game(screen, game, server, cars, input_box_answer,player.room,player)
 
             # Draw room
             else:
                 server.update_rooms(player.room.unpack_players,player)
-                draw_room(screen, player.room,server)
+                draw_room(screen, player.room,server,cars)
                 if len(player.room.ready_players) == player.room.player_count and player.room.player_count > 1:
                     player.room.start_game()
                     game.start_game(player.room)
