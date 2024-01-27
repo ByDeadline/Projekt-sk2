@@ -22,6 +22,7 @@ public:
     };
     ResultTypeEnum resultType;
 
+    /// @brief A struct defining information for statistics for a user
     struct UserStats
     {
         std::string username;
@@ -56,6 +57,7 @@ private:
     /// @brief Unique code of the user
     std::string uniqueCode;
 
+    /// @brief User statistics as a text
     std::string userStats;
 
     /// @brief A dictionary holding a text to be sent to the user based on the set result type

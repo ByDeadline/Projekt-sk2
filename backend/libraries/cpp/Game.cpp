@@ -3,6 +3,8 @@
 
 #include "../header/Game.h"
 #include "../header/Log.h"
+#include "../header/Server.h"
+#include "../header/GameActionResult.h"
 
 void Game::ChooseRandomText()
 {
@@ -32,6 +34,10 @@ void Game::SetPlayerProgress(std::string userId, int progress)
             if (player.progress >= this->wordCount)
                 this->finished = true;
             Log::Write("Set " + userId + "'s progress to " + std::to_string(progress));
+            auto requestResult = std::make_shared<GameActionResult>();
+            requestResult->resultType = GameActionResult::ResultTypeEnum::SendStatus;
+            requestResult->setStatus(this->players);
+            Server::Send(this->players, requestResult);
             return;
         }
     }
@@ -44,4 +50,17 @@ Game::Game(std::list<Player> players)
     this->players = players;
     this->ChooseRandomText();
     this->CalculateWordCount();
+
+    auto requestResult = std::make_shared<GameActionResult>();
+    requestResult->resultType = GameActionResult::ResultTypeEnum::SendText;
+    requestResult->setText(this->GetText(), this->GetWordCount(), this->players);
+    Server::Send(this->players, requestResult);
+}
+
+Game::~Game()
+{
+    auto requestResult = std::make_shared<GameActionResult>();
+    requestResult->resultType = GameActionResult::ResultTypeEnum::FinishGame;
+    requestResult->setStatus(this->players);
+    Server::Send(this->players, requestResult);
 }

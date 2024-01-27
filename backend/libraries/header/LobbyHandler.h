@@ -58,6 +58,9 @@ public:
     /// @param lobbyId Id of the lobby to start the game in
     static void AsyncStartGame(std::string lobbyId);
 
+    /// @brief Handles the request for setting the player's progress
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleProgressUpdate(std::shared_ptr<IRequestData> requestData);
 
     /// @brief Checks whether everyone in the lobby is ready and starts the game
@@ -78,6 +81,11 @@ public:
     /// @param requestData Data sent by the client
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleCreateLobby(std::shared_ptr<IRequestData> requestData);
+
+    /// @brief Handles the request for removing a lobby. Only admin can do that
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
+    static std::shared_ptr<IRequestResult> HandleRemoveLobby(std::shared_ptr<IRequestData> requestData);
 
     /// @brief Handles the request for getting ready
     /// @param requestData Data sent by the client

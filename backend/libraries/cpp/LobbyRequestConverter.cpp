@@ -66,6 +66,15 @@ std::shared_ptr<IRequestData> LobbyRequestConverter::Convert(std::list<std::stri
             continue;
         }
 
+        if (item == "remove_lobby" && !requestFound)
+        {
+            requestFound = true;
+            lobbyData->SetRequestType(RequestType::RemoveLobby);
+            get2 = true;
+            get3 = true;
+            continue;
+        }
+
         if (get2)
         {
             get2 = false;
