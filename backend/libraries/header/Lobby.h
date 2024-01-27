@@ -67,6 +67,7 @@ public:
     /// @return The result of setting ready
     LobbyResult SetUserReady(std::string userId);
 
+    /// @brief Starts the game assigned to this lobby
     void StartGame();
 
     /// @brief Method checks if all users are set as ready

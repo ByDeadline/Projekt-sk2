@@ -21,7 +21,8 @@ public:
         LobbyNotFound,
         NotInLobby,
         GameInProgress,
-        LobbyStatus
+        LobbyStatus,
+        NoPrivilages
     };
     ResultTypeEnum resultType;
 
@@ -39,12 +40,14 @@ public:
         this->lobbies = "";
         for (auto lobby : lobbies)
         {
-            this->lobbies += lobby->lobbyId + "," + std::to_string(lobby->GetUserCount()) + "," + std::to_string(lobby->maxUsers) + '\n';
+            this->lobbies += lobby->lobbyId + "," + std::to_string(lobby->GetUserCount()) + "," + std::to_string(lobby->maxUsers) + (lobby->gameInProgress ? "y" : "n") + '\n';
         }
 
         this->CreateResultTypeMessage();
     }
 
+    /// @brief Sets the lobbies status to a text
+    /// @param usersInLobby A map with usernames and a bool telling if the user is ready
     void setLobbyStatus(std::map<std::string, bool> usersInLobby) {
         this->lobbyStatus = "";
         for (auto userInLobby : usersInLobby)
@@ -65,6 +68,7 @@ private:
     /// @brief A text that holds all the lobbies
     std::string lobbies;
 
+    /// @brief Lobby status as a text
     std::string lobbyStatus;
 
     /// @brief A dictionary holding a text to be sent to the user based on the set result type
@@ -82,7 +86,8 @@ private:
             { ResultTypeEnum::LobbyNotFound, "failed,Lobby with this id does not exist" },
             { ResultTypeEnum::NotInLobby, "failed,User is not in this lobby" },
             { ResultTypeEnum::GameInProgress, "failed,The game is already in progress" },
-            { ResultTypeEnum::LobbyStatus, "status," + this->lobbyStatus }
+            { ResultTypeEnum::LobbyStatus, "status," + this->lobbyStatus },
+            { ResultTypeEnum::NoPrivilages, "failed,No privilages" }
         };
     }
 };

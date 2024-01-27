@@ -22,5 +22,8 @@ public:
     /// @brief A constructor that starts the TCP server connection
     TCPHandler();
 
+    /// @brief Sends a message using a socket in the serverConnection
+    /// @param serverConnection Server connection of a client that the message is meant to be sent
+    /// @param requestResult Data containing information to be sent to the user
     static void SendWithFd(std::shared_ptr<ServerConnection> serverConnection, std::shared_ptr<IRequestResult> requestResult);
 };

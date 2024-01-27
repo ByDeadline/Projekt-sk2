@@ -132,6 +132,9 @@ std::shared_ptr<IRequestResult> Server::ReciveRequest(std::shared_ptr<IRequestDa
         case RequestType::CreateLobby:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for creating a lobby");
             return LobbyHandler::HandleCreateLobby(requestData);
+        case RequestType::RemoveLobby:
+            Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for removing a lobby");
+            return LobbyHandler::HandleRemoveLobby(requestData);
         case RequestType::ShowLobbies:
             Log::Write(std::to_string(requestData->clientId) + ": Server recognised the request for showing all lobbies");
             return LobbyHandler::HandleShowLobbies(requestData);
