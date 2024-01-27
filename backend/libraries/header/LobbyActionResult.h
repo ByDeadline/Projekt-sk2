@@ -40,7 +40,7 @@ public:
         this->lobbies = "";
         for (auto lobby : lobbies)
         {
-            this->lobbies += lobby->lobbyId + "," + std::to_string(lobby->GetUserCount()) + "," + std::to_string(lobby->maxUsers) + '\n';
+            this->lobbies += lobby->lobbyId + "," + std::to_string(lobby->GetUserCount()) + "," + std::to_string(lobby->maxUsers) + (lobby->gameInProgress ? "y" : "n") + '\n';
         }
 
         this->CreateResultTypeMessage();

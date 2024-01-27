@@ -105,8 +105,8 @@ show_lobbies,<userId>
 ```
 Odpowiedź serwera:
 ```
-success,<lobbyId>,<inLobbyCount>,<maxLobbyCount>
-<lobbyId>,<inLobbyCount>,<maxLobbyCount>
+success,<lobbyId>,<inLobbyCount>,<maxLobbyCount>,<inGame>
+<lobbyId>,<inLobbyCount>,<maxLobbyCount>,<inGame>
 ...
 ```
 
