@@ -29,7 +29,6 @@ green_check = pygame.transform.scale(green_check, (30, 30))
 usr_icon = pygame.image.load("assets/usr_icon.png")
 usr_icon = pygame.transform.scale(usr_icon, (30, 30))
 
-
 def wrap_string(string, max_width):
     wraped_string = textwrap.wrap(string, max_width)
     for i in range(len(wraped_string)):
@@ -51,74 +50,93 @@ class ServerCommunication:
 
     def set_name(self, name):
         msg = "login," + "".join(name) + " "
-        self.socket.send(msg.encode())
-        time.sleep(0.1)
-        response = self.socket.recv(1024).decode()
-        if "ok" in response:
+        try:
+            self.socket.send(msg.encode())
+            time.sleep(0.1)
             response = self.socket.recv(1024).decode()
-        if response.split(',')[0] == "success":
-            self.my_id = response.split(',')[1:][0]
-            print(self.my_id)
-            print("logged in")
-            return response.split(',')[1:]
+            if "ok" in response:
+                response = self.socket.recv(1024).decode()
+            if response.split(',')[0] == "success":
+                self.my_id = response.split(',')[1:][0]
+                print(self.my_id)
+                print("logged in")
+                return response.split(',')[1:]
+            return None
+        except:
+            print("server not found")
+            exit()
 
-        return None
 
     def get_rooms(self, game):
-        rooms = {}
-        if self.my_id == None:
-            return rooms
-        msg = "show_lobbies," + self.my_id + " "
-        self.socket.send(msg.encode())
-        time.sleep(0.1)
-        response = self.socket.recv(1024).decode()
-        room_names = game.get_names_of_rooms()
-        if "success" in response:
-            response = response.replace('success,', '')
+        try:
+            rooms = {}
+            if self.my_id == None:
+                return rooms
+            msg = "show_lobbies," + self.my_id + " "
+            self.socket.send(msg.encode())
+            time.sleep(0.1)
+            response = self.socket.recv(1024).decode()
+            room_names = game.get_names_of_rooms()
+            if "success" in response:
+                response = response.replace('success,', '')
 
-            for room in response.split('\n'):
-                if room != "":
-                    rooms[room.split(',')[0]] = room.split(',')[1]
-                    if room.split(',')[0] not in room_names:
-                        game.create_room(room.split(',')[0])
-            return rooms
+                for room in response.split('\n'):
+                    if room != "":
+                        rooms[room.split(',')[0]] = room.split(',')[1]
+                        if room.split(',')[0] not in room_names:
+                            game.create_room(room.split(',')[0])
+                return rooms
+        except:
+            print("server not found")
+            exit()
 
     def create_room(self):
-        self.socket.send(("create_lobby," + self.my_id + " ").encode())
-        time.sleep(0.1)
-        response = self.socket.recv(1024).decode()
-        response = response.split('\n')
-        print("created room with this res", response)
-        if "success" in response[-1]:
-            room = response[-1].split(',')[1]
-            print("created room", room)
-            self.my_room_id = room
-            return response
-        return None
+        try:
+            self.socket.send(("create_lobby," + self.my_id + " ").encode())
+            time.sleep(0.1)
+            response = self.socket.recv(1024).decode()
+            response = response.split('\n')
+            print("created room with this res", response)
+            if "success" in response[-1]:
+                room = response[-1].split(',')[1]
+                print("created room", room)
+                self.my_room_id = room
+                return response
+            return None
+        except:
+            print("server not found")
+            exit()
 
     def send_join_room(self, room_name):
-        self.socket.send(("join_lobby," + self.my_id + "," + room_name + " ").encode())
-        time.sleep(0.1)
-        response = self.socket.recv(1024).decode()
-        response = response.split('\n')
-        if "success" in response[-1]:
-            self.my_room_id = room_name
-            print("joined room")
-            response.pop(-1)
-            return response
-        return None
+        try:
+            self.socket.send(("join_lobby," + self.my_id + "," + room_name + " ").encode())
+            time.sleep(0.1)
+            response = self.socket.recv(1024).decode()
+            response = response.split('\n')
+            if "success" in response[-1]:
+                self.my_room_id = room_name
+                print("joined room")
+                response.pop(-1)
+                return response
+            return None
+        except:
+            print("server not found")
+            exit()
 
     def send_leave_room(self):
-        self.socket.send(("leave_lobby," + self.my_id + "," + self.my_room_id + " ").encode())
-        time.sleep(0.1)
-        response = self.socket.recv(1024).decode()
-        response = response.split('\n')
-        if "success" in response[-1]:
-            print("left room")
-            response.pop(-1)
-            return True
-        return False
-
+        try:
+            self.socket.send(("leave_lobby," + self.my_id + "," + self.my_room_id + " ").encode())
+            time.sleep(0.1)
+            response = self.socket.recv(1024).decode()
+            response = response.split('\n')
+            if "success" in response[-1]:
+                print("left room")
+                response.pop(-1)
+                return True
+            return False
+        except:
+            print("server not found")
+            exit()
 
     def update_rooms(self, update_room, player):
         fcntl.fcntl(self.socket, fcntl.F_SETFL, os.O_NONBLOCK)
@@ -128,8 +146,6 @@ class ServerCommunication:
                 global game_string
                 player.room.started = True
                 game_string = response.split("\n")[-1].split(',')[2]
-                global gama_string_length
-                game_string_length = response.split("\n")[-1].split(',')[1]
                 return
             if "status" in response:
                 update_room(response.split('\n'))
@@ -144,18 +160,13 @@ class ServerCommunication:
         fcntl.fcntl(self.socket, fcntl.F_SETFL, os.O_NONBLOCK)
         try:
             response = self.socket.recv(1024).decode()
-
             response = response.split('\n')
-
-            print("response", response)
-            print("response[0]", response[0])
             for x in response:
                 if "finish" in x.split(","):
                     print("finished")
                     room.end_game()
             if "status" in response[0].split(","):
                 room.progress = {}
-                print("udalo")
                 players = response
 
                 for player in players:
@@ -163,7 +174,6 @@ class ServerCommunication:
                         player = player.replace('status,', '')
                         print("player", player)
                         room.update_progress(player.split(',')[0], int(player.split(',')[1]))
-                print("room progress", room.progress)
 
         except:
             pass
@@ -177,7 +187,6 @@ class ServerCommunication:
         self.connected = False
 
     def player_ready(self, player):
-        print("player name", player.name, "room name", player.room.name)
         self.socket.send(("ready," + self.my_id + "," + player.room.name + " ").encode())
         return True
 
@@ -217,9 +226,11 @@ class Room():
         self.started = True
 
     def player_ready(self, player):
-        if self.server.player_ready(player):
-            self.ready_players.append(player.name)
-            return True
+        if player.name not in self.ready_players:
+            if self.server.player_ready(player):
+                if player.name not in self.ready_players:
+                    self.ready_players.append(player.name)
+                return True
         return False
 
     def player_unready(self, player):
@@ -496,14 +507,14 @@ def draw_player_name_input(screen, input_box):
     pygame.display.flip()
 
 
-def draw_room(screen, room, server, cars):
+def draw_room(screen, room, cars):
     global red_check
     global green_check
     players = room.players
 
     font_size = 20
     record_height = 50
-    top_margin = SCREEN_HEIGHT // 2 - record_height * room.player_count // 2
+    top_margin = SCREEN_HEIGHT // 2 - record_height * len(players) // 2
     text_margin = record_height // 2
 
     rdy_button = pygame.rect.Rect(SCREEN_WIDTH // 2 - 45, SCREEN_HEIGHT - 100, 90, 30)
@@ -538,7 +549,7 @@ def draw_room(screen, room, server, cars):
     screen.blit(text, textRect)
 
 
-def draw_game(screen, game, server, cars, input_box, room, player):
+def draw_game(screen, cars, input_box, room, player):
     font_size = 20
     left_margin = 50
     right_margin = 50
@@ -597,7 +608,7 @@ def main():
         exit()
 
     quitEvent = threading.Event()
-    logged_in = False
+    global logged_in
     game = Game(server)
     player = Player("", server)
     rooms_to_show = {}
@@ -693,7 +704,7 @@ def main():
                         else:
                             input_box_answer.handle_event(event)
 
-        # Draw the game
+        # Draw
 
         # Draw login screen
         if not logged_in:
@@ -708,6 +719,7 @@ def main():
                 t = threading.Thread(target=send_alive, args=(quitEvent, server.socket, server.my_id))
                 t.start()
                 thread_started = True
+
             draw_room_list(screen, game, player, server, rooms_to_show)
 
         # Draw room and game
@@ -716,12 +728,12 @@ def main():
             # Draw game
             if player.room.started:
                 server.update_game(player.room)
-                draw_game(screen, game, server, cars, input_box_answer, player.room, player)
+                draw_game(screen, cars, input_box_answer, player.room, player)
 
             # Draw room
             else:
                 server.update_rooms(player.room.unpack_players, player)
-                draw_room(screen, player.room, server, cars)
+                draw_room(screen, player.room, cars)
                 if len(player.room.ready_players) == player.room.player_count and player.room.player_count > 1:
                     player.room.start_game()
                     game.start_game(player.room)
