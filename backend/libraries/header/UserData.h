@@ -14,6 +14,7 @@ public:
     /// @brief Username
     std::string username;
 
+    /// @brief Id of the user to be deleted
     std::string userToDelete;
 
     /// @brief Is the user an admin

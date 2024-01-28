@@ -9,6 +9,7 @@ enum RequestType
     RemoveUser,
     ShowUsers,
     CreateLobby,
+    RemoveLobby,
     ShowLobbies,
     JoinLobby,
     LeaveLobby,

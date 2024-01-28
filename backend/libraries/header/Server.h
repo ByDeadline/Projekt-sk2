@@ -25,12 +25,22 @@ public:
     /// @return List of pointers containging a server connection of a client
     static std::list<std::shared_ptr<ServerConnection>> GetServerConnections();
 
+    /// @brief Get a ServerConnection by user's unique id
+    /// @param userId User's unique id
+    /// @return Server connection of a client
     static std::shared_ptr<ServerConnection> GetServerConnectionByUserId(std::string userId);
 
+    /// @brief Get a ServerConnection by client's unique id
+    /// @param clientId Client's unique id
+    /// @return Server connection of a client
     static std::shared_ptr<ServerConnection> GetServerConnectionByClientId(int clientId);
 
+    /// @brief Diconnects the client from the server
+    /// @param clientId Client's id of the client to be deleted
     static void DisconnectClient(int clientId);
 
+    /// @brief Removes a server connection by client id
+    /// @param clientId Client's unique id
     static void RemoveServerConnection(int clientId);
 
     /// @brief Finds a user based on client's connection id

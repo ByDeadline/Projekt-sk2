@@ -42,9 +42,11 @@ public:
     /// @param clientId Client's connection unique id
     static void RemoveUser(std::string userId);
     
+    /// @brief Constructs a list with user statistics
+    /// @return A list with user statistics
     static std::list<UserActionResult::UserStats> BuildUserStats();
 
-    /// @brief Handles the request for showing all users
+    /// @brief Handles the request for showing all users. Only admin can do that
     /// @param requestData Data sent by the client
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleShowUsers(std::shared_ptr<IRequestData> requestData);
@@ -64,5 +66,8 @@ public:
     /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleRemoveUser(std::shared_ptr<IRequestData> requestData);
 
+    /// @brief Handles the request for staying alive
+    /// @param requestData Data sent by the client
+    /// @return Result of the request
     static std::shared_ptr<IRequestResult> HandleAlive(std::shared_ptr<IRequestData> requestData);
 };
