@@ -22,6 +22,10 @@ global game_started
 game_started = False
 
 failed_to_login = False
+
+is_an_admin = False
+admin_btn_clicked = False
+
 red_check = pygame.image.load("assets/red_check.png")
 red_check = pygame.transform.scale(red_check, (30, 30))
 green_check = pygame.image.load("assets/green_check.jpg")
@@ -54,19 +58,45 @@ class ServerCommunication:
             self.socket.send(msg.encode())
             time.sleep(0.1)
             response = self.socket.recv(1024).decode()
-            if "ok" in response:
-                response = self.socket.recv(1024).decode()
             if response.split(',')[0] == "success":
                 self.my_id = response.split(',')[1:][0]
-                print(self.my_id)
                 print("logged in")
                 return response.split(',')[1:]
             return None
         except:
             print("server not found")
             exit()
+    def login_admin(self, name):
+        global is_an_admin
 
-
+        self.socket.send(("admin," + "".join(name) + " ").encode())
+        time.sleep(0.1)
+        response = self.socket.recv(1024).decode()
+        if response.split(',')[0] == "success":
+            self.my_id = response.split(',')[1:][0]
+            is_an_admin = True
+            print("logged in as admin")
+            return response.split(',')[1:]
+        return None
+    def get_users(self,game):
+        try:
+            users = {}
+            msg = "show_users," + self.my_id + " "
+            self.socket.send(msg.encode())
+            time.sleep(0.1)
+            response = self.socket.recv(1024).decode()
+            if "success" in response:
+                response = response.replace('success,', '')
+                for user in response.split('\n'):
+                    if user != "":
+                        user = user.split(',')
+                        if user[0] not in game.get_players():
+                            game.add_player(user[0])
+        except:
+            print("server not found")
+            exit()
+    def kick_user(self, user):
+        return True
     def get_rooms(self, game):
         try:
             rooms = {}
@@ -82,9 +112,12 @@ class ServerCommunication:
 
                 for room in response.split('\n'):
                     if room != "":
-                        rooms[room.split(',')[0]] = room.split(',')[1]
-                        if room.split(',')[0] not in room_names:
-                            game.create_room(room.split(',')[0])
+                        room = room.split(',')
+
+                        if "y" not in room[2]:
+                            rooms[room[0]] = room[1]
+                            if room[0] not in room_names:
+                                game.create_room(room[0])
                 return rooms
         except:
             print("server not found")
@@ -309,7 +342,11 @@ class Player():
         return False
 
     def set_name(self, name):
-        self.my_id = self.server.set_name(name)
+        global admin_btn_clicked
+        if admin_btn_clicked:
+            self.my_id = self.server.login_admin(name)
+        else:
+            self.my_id = self.server.set_name(name)
         if self.my_id != None:
             self.name = ''.join(name)
             return True
@@ -331,12 +368,6 @@ class Game():
             return True
         return False
 
-    def remove_player(self, player):
-        room = player.room
-        room.remove_player(player)
-        if room.player_count == 0:
-            self.rooms.remove(room)
-
     def start_game(self, room):
         room.start_game()
 
@@ -355,6 +386,18 @@ class Game():
                 return room
         return None
 
+    def add_player(self, player):
+        self.players.append(player)
+
+    def remove_player(self, player):
+        self.players.remove(player)
+
+    def get_players(self):
+        return self.players
+
+    def refresh_players(self):
+        self.players = []
+        self.server.get_users(self)
 
 class InputBox:
     def __init__(self, x, y, w, h, function_after_enter=None, text=[], is_enter_blocked=False):
@@ -491,12 +534,26 @@ def draw_room_list(screen, game, player, server, rooms):
 
 
 def draw_player_name_input(screen, input_box):
+    global red_check, green_check, admin_btn_clicked
     font = pygame.font.Font('freesansbold.ttf', 32)
     text = font.render('Enter your name', True, COLOR_DARK_BLUE)
     textRect = text.get_rect()
     textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
     screen.blit(text, textRect)
     input_box.draw(screen)
+
+    # draw admin button
+    admin_button = pygame.rect.Rect(SCREEN_WIDTH // 2 - 45, SCREEN_HEIGHT // 2 + 100, 90, 30)
+    pygame.draw.rect(screen, COLOR_GREEN, admin_button)
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    text = font.render('Admin', True, COLOR_DARK_BLUE)
+    textRect = text.get_rect()
+    textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 115)
+    screen.blit(text, textRect)
+    if admin_btn_clicked:
+        screen.blit(green_check, (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 100))
+    else:
+        screen.blit(red_check, (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 100))
     if failed_to_login:
         font = pygame.font.Font('freesansbold.ttf', 20)
         text = font.render('Name already taken', True, RED)
@@ -596,6 +653,37 @@ def draw_game(screen, cars, input_box, room, player):
         player.room = None
 
 
+def draw_admin_panel(screen,game,player):
+    record_height = 40
+    record_width = SCREEN_WIDTH - 20
+    top_margin = 50
+    text_margin = record_height // 2
+
+    screen.blit(usr_icon, (10, 10))
+    font = pygame.font.Font(None, 32)
+    name_surface = font.render(''.join(player.name), True, (0, 0, 0))
+    screen.blit(name_surface, (50, 10))
+
+    players = game.get_players()
+    for i in range(len(players)):
+        pygame.draw.rect(screen, COLOR_GREY, (10, top_margin + record_height * i, record_width, record_height), 2,
+                         3)
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        text = font.render(players[i], True, COLOR_DARK_BLUE)
+        textRect = text.get_rect()
+        textRect.center = (50, text_margin + top_margin + record_height * i)
+        screen.blit(text, textRect)
+        # draw kick button
+        kick_button = pygame.rect.Rect(SCREEN_WIDTH - 100, top_margin + record_height * i + 5, 50, 30)
+        pygame.draw.rect(screen, RED, kick_button)
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        text = font.render('Kick', True, COLOR_DARK_BLUE)
+        textRect = text.get_rect()
+        textRect.center = (SCREEN_WIDTH - 75, text_margin + top_margin + record_height * i)
+        screen.blit(text, textRect)
+
+
+
 # Set up the drawing window
 screen = pygame.display.set_mode([SCREEN_HEIGHT, SCREEN_WIDTH], )
 
@@ -608,11 +696,12 @@ def main():
         exit()
 
     quitEvent = threading.Event()
-    global logged_in
+    global logged_in,admin_btn_clicked
     game = Game(server)
     player = Player("", server)
     rooms_to_show = {}
-    cars = []
+
+
     blue_car = pygame.image.load("assets/blue_car.png")
     blue_car = pygame.transform.scale(blue_car, (100, 100))
     red_car = pygame.image.load("assets/red_car.png")
@@ -633,7 +722,8 @@ def main():
         screen.fill((255, 255, 255))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                server.send_disconnect()
+                if logged_in:
+                    server.send_disconnect()
                 print("disconnected")
                 quitEvent.set()
                 pygame.quit()
@@ -641,9 +731,29 @@ def main():
             # Handle user name input events
             if not logged_in:
                 input_box_name.handle_event(event)
-
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        mouse_pos = event.pos
+                        # check if player clicked admin button
+                        if (SCREEN_WIDTH // 2 - 45 < mouse_pos[0] < SCREEN_WIDTH // 2 + 45 and SCREEN_HEIGHT // 2 + 100 < \
+                                mouse_pos[1] < SCREEN_HEIGHT // 2 + 130):
+                            admin_btn_clicked = not admin_btn_clicked
+            # Handle admin panel events
+            if logged_in and is_an_admin:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        mouse_pos = event.pos
+                        players = game.get_players()
+                        for i in range(len(players)):
+                            # check if player clicked kick button for player i
+                            if (SCREEN_WIDTH - 100 < mouse_pos[0] < SCREEN_WIDTH - 50 and 50 + 40 * i < mouse_pos[1] <
+                                    80 + 40 * i):
+                                if server.kick_user(players[i]):
+                                    game.remove_player(players[i])
+                                    game.refresh_players()
+                                    break
             # Handle room list events
-            if logged_in and player.room == None:
+            if logged_in and player.room == None and not is_an_admin:
                 input_box_answer.visible_text = []
                 input_box_answer.whole_text = ""
                 input_box_name.visible_text = []
@@ -654,6 +764,7 @@ def main():
                         rooms_to_show = game.get_rooms()
                         for i in range(len(rooms_to_show)):
                             room = rooms_to_show[i]
+                            # check if player clicked join button for room i
                             if 10 < mouse_pos[0] < SCREEN_WIDTH - 10 and 50 + 40 * i < mouse_pos[1] < 90 + 40 * i:
                                 if player.join_room(room):
                                     logged_in = True
@@ -661,12 +772,12 @@ def main():
                                 print("didnt join room")
                                 rooms_to_show = server.get_rooms(game)
 
-                        if SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 40 < mouse_pos[
-                            1] < SCREEN_HEIGHT - 10:
+                        if (SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 40 < mouse_pos[1] <
+                                SCREEN_HEIGHT - 10):
                             if player.create_room():
                                 rooms_to_show = server.get_rooms(game)
-                        if SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 80 < mouse_pos[
-                            1] < SCREEN_HEIGHT - 50:
+                        if (SCREEN_WIDTH - 150 < mouse_pos[0] < SCREEN_WIDTH - 10 and SCREEN_HEIGHT - 80 < mouse_pos[1] <
+                                SCREEN_HEIGHT - 50):
                             rooms_to_show = server.get_rooms(game)
 
             # Handle room events
@@ -675,6 +786,8 @@ def main():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             player.leave_room()
+                            rooms_to_show = server.get_rooms(game)
+
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if event.button == 1:
                             mouse_pos = event.pos
@@ -712,6 +825,8 @@ def main():
             if player.name != "":
                 rooms_to_show = server.get_rooms(game)
                 logged_in = True
+                if is_an_admin:
+                    game.refresh_players()
 
         # Draw room list
         elif player.room == None:
@@ -719,8 +834,10 @@ def main():
                 t = threading.Thread(target=send_alive, args=(quitEvent, server.socket, server.my_id))
                 t.start()
                 thread_started = True
-
-            draw_room_list(screen, game, player, server, rooms_to_show)
+            if is_an_admin:
+                draw_admin_panel(screen,game,player)
+            else:
+                draw_room_list(screen, game, player, server, rooms_to_show)
 
         # Draw room and game
         elif player.room != None:
