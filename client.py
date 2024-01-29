@@ -554,6 +554,7 @@ def draw_player_name_input(screen, input_box):
         screen.blit(green_check, (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 100))
     else:
         screen.blit(red_check, (SCREEN_WIDTH // 2 + 50, SCREEN_HEIGHT // 2 + 100))
+    # show error message
     if failed_to_login:
         font = pygame.font.Font('freesansbold.ttf', 20)
         text = font.render('Name already taken', True, RED)
@@ -583,9 +584,7 @@ def draw_room(screen, room, cars):
     screen.blit(text, textRect)
     for i in range(len(players)):
         player = players[i].name
-        pygame.draw.rect(screen, COLOR_GREY, (10, top_margin + record_height * i, SCREEN_WIDTH - 20, record_height), 2,
-                         3)
-
+        pygame.draw.rect(screen, COLOR_GREY, (10, top_margin + record_height * i, SCREEN_WIDTH - 20, record_height), 2,3)
         text = font.render(player, True, COLOR_DARK_BLUE)
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, text_margin + top_margin + record_height * i)
@@ -594,9 +593,7 @@ def draw_room(screen, room, cars):
             screen.blit(green_check, (SCREEN_WIDTH - 50, text_margin + top_margin + record_height * i - 15))
         else:
             screen.blit(red_check, (SCREEN_WIDTH - 50, text_margin + top_margin + record_height * i - 15))
-
         # draw coresponding car
-
         screen.blit(cars[i], (SCREEN_WIDTH - 200, text_margin + top_margin + record_height * (i - 1)))
 
     font = pygame.font.Font('freesansbold.ttf', font_size)
@@ -620,10 +617,9 @@ def draw_game(screen, cars, input_box, room, player):
     wrapped_string = wrap_string(game_string, 70)
     text_width = 0
     line = 0
-
     text_index = 0
-
     text_input = input_box
+    
     for i in range(len(wrapped_string)):
         for j in range(len(wrapped_string[i])):
             if text_index < len(input_box.whole_text):
@@ -643,7 +639,6 @@ def draw_game(screen, cars, input_box, room, player):
         screen.fill((255, 255, 255))
         lider_board = list(dict(sorted(room.progress.items(), key=lambda item: item[1])).keys())
         font = pygame.font.Font('freesansbold.ttf', 30)
-
         text = font.render("Game finished " + "First place: " + str(lider_board[-1]), True, COLOR_DARK_BLUE)
         textRect = text.get_rect()
         textRect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
@@ -666,8 +661,7 @@ def draw_admin_panel(screen,game,player):
 
     players = game.get_players()
     for i in range(len(players)):
-        pygame.draw.rect(screen, COLOR_GREY, (10, top_margin + record_height * i, record_width, record_height), 2,
-                         3)
+        pygame.draw.rect(screen, COLOR_GREY, (10, top_margin + record_height * i, record_width, record_height), 2, 3)
         font = pygame.font.Font('freesansbold.ttf', 20)
         text = font.render(players[i], True, COLOR_DARK_BLUE)
         textRect = text.get_rect()
