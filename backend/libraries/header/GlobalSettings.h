@@ -19,7 +19,7 @@ public:
     static const int MaxCharAddressLength = 256;
 
     /// @brief Time in ms after which the TCP server timeouts
-    static const int TCPUserConnectionTimeout = 300000;
+    static const int TCPUserConnectionTimeout = 30000;
   
     /// @brief Max users that can be in one lobby
     static const int LobbyMaxUsers = 4;
